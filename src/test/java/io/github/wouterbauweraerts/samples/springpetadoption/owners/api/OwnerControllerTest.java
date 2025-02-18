@@ -2,11 +2,13 @@ package io.github.wouterbauweraerts.samples.springpetadoption.owners.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.json.JsonCompareMode.LENIENT;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,5 +52,25 @@ class OwnerControllerTest {
                 .bodyJson()
                 .withResourceLoadClass(null)
                 .isEqualTo("all-owners-paged.json", LENIENT);
+    }
+
+    @Test
+    void getOwnerWithExistingOwner_returnsExpected() {
+        OwnerResponse ownerResponse = new OwnerResponse(1, "Wouter");
+        when(ownerService.getOwnerById(anyInt())).thenReturn(Optional.of(ownerResponse));
+
+        assertThat(mockMvc.get().uri("/owners/%d".formatted(ownerResponse.id())))
+                .hasStatus(OK)
+                .bodyJson()
+                .hasPathSatisfying("$.id", value -> value.assertThat().isEqualTo(ownerResponse.id()))
+                .hasPathSatisfying("$.name", value -> value.assertThat().isEqualTo(ownerResponse.name()));
+    }
+
+    @Test
+    void getOwnerWithNonExistingOwner_returns404() {
+        when(ownerService.getOwnerById(anyInt())).thenReturn(Optional.empty());
+
+        assertThat(mockMvc.get().uri("/owners/666"))
+                .hasStatus(404);
     }
 }

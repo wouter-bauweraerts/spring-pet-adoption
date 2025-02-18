@@ -27,8 +27,9 @@ public class OwnerController {
         return ownerService.getOwners(pageable);
     }
 
+    @GetMapping("/{ownerId}")
     public ResponseEntity<OwnerResponse> getOwner(@PathVariable Integer ownerId) {
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.of(ownerService.getOwnerById(ownerId));
     }
 
     public OwnerResponse addOwner(AddOwnerRequest request) {

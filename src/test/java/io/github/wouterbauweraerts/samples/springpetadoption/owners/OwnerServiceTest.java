@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,5 +53,23 @@ class OwnerServiceTest {
 
         assertThat(ownerService.getOwners(pageable)).containsExactlyInAnyOrderElementsOf(expected);
         verify(ownerRepository).findAll(pageable);
+    }
+
+    @Test
+    void getOwnerById_notFoundReturnsEmpty() {
+        when(ownerRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThat(ownerService.getOwnerById(1)).isEmpty();
+    }
+
+    @Test
+    void getOwnerById_returnsExpected() {
+        Owner wouter = new Owner(1, "Wouter");
+        OwnerResponse expected = new OwnerResponse(1, "Wouter");
+
+        when(ownerRepository.findById(any())).thenReturn(Optional.of(wouter));
+
+        assertThat(ownerService.getOwnerById(1)).hasValue(expected);
+        verify(ownerRepository).findById(1);
     }
 }

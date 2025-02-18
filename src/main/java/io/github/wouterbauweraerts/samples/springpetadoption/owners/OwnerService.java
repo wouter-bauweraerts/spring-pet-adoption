@@ -1,5 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,11 @@ public class OwnerService {
 
     public Page<OwnerResponse> getOwners(Pageable pageable) {
         return ownerRepository.findAll(pageable)
+                .map(ownerMapper::map);
+    }
+
+    public Optional<OwnerResponse> getOwnerById(Integer ownerId) {
+        return ownerRepository.findById(ownerId)
                 .map(ownerMapper::map);
     }
 }
