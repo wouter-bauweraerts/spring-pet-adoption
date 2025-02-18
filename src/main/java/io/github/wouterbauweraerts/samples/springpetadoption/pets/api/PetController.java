@@ -2,7 +2,9 @@ package io.github.wouterbauweraerts.samples.springpetadoption.pets.api;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,8 +26,9 @@ public class PetController {
         return petService.getPets(page);
     }
 
-    public PetResponse getPet(int id) {
-        return null;
+    @GetMapping("/{petId}")
+    public ResponseEntity<PetResponse> getPet(@PathVariable Integer petId) {
+        return ResponseEntity.of(petService.getPet(petId));
     }
 
     public Page<PetResponse> findAvailablePets(Pageable page) {

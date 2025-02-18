@@ -4,12 +4,16 @@ import static io.github.wouterbauweraerts.samples.springpetadoption.pets.interna
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
@@ -51,5 +55,24 @@ class PetServiceTest {
         when(petRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(petEntities));
 
         assertThat(petService.getPets(pageRequest)).containsExactlyElementsOf(petDtos);
+    }
+
+    @Test
+    void getPet_findsPetByIdAndReturnsExpected() {
+        Pet petEntity = new Pet(1, "Roxy", DOG);
+        PetResponse petDto = new PetResponse(1, "Roxy", DOG.name());
+
+        when(petRepository.findById(anyInt())).thenReturn(java.util.Optional.of(petEntity));
+
+        assertThat(petService.getPet(petEntity.getId())).hasValue(petDto);
+    }
+
+    @Test
+    void getPetWhenNothingFound_returnsEmpty() {
+        when(petRepository.findById(anyInt())).thenReturn(Optional.empty());
+
+        assertThat(petService.getPet(1)).isEmpty();
+
+        verifyNoInteractions(petMapper);
     }
 }

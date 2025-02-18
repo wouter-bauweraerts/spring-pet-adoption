@@ -1,5 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,11 @@ public class PetService {
 
     public Page<PetResponse> getPets(Pageable pageable) {
         return petRepository.findAll(pageable)
+                .map(petMapper::map);
+    }
+
+    public Optional<PetResponse> getPet(int petId) {
+        return petRepository.findById(petId)
                 .map(petMapper::map);
     }
 }

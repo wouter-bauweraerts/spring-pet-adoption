@@ -83,4 +83,19 @@ class PetRepositoryTest {
                 () -> assertThat(petRepository.findAll(pair.getFirst())).containsExactlyInAnyOrderElementsOf(pair.getSecond())
         ));
     }
+
+    @TestFactory
+    Stream<DynamicTest> findById_returnsExpected() {
+        return Stream.of(
+                pet1, pet2, pet3, pet4, pet5, pet6
+        ).map(p -> dynamicTest(
+                "findById with id %d returns %s".formatted(p.getId(), p),
+                () -> assertThat(petRepository.findById(p.getId())).hasValue(p)
+        ));
+    }
+
+    @Test
+    void findById_withNonExistingId_returnsEmpty() {
+        assertThat(petRepository.findById(-1)).isEmpty();
+    }
 }
