@@ -2,6 +2,7 @@ package io.github.wouterbauweraerts.samples.springpetadoption.owners;
 
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,11 +21,15 @@ public class OwnerService {
     private final OwnerRepository ownerRepository;
     private final OwnerMapper ownerMapper;
     private final PetService petService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public OwnerService(OwnerRepository ownerRepository, OwnerMapper ownerMapper, PetService petService) {
+    public OwnerService(OwnerRepository ownerRepository, OwnerMapper ownerMapper, PetService petService, ApplicationEventPublisher eventPublisher, ApplicationEventPublisher applicationEventPublisher) {
         this.ownerRepository = ownerRepository;
         this.ownerMapper = ownerMapper;
         this.petService = petService;
+        this.eventPublisher = eventPublisher;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     public Page<OwnerResponse> getOwners(Pageable pageable) {
@@ -59,5 +64,12 @@ public class OwnerService {
                     throw new EntityNotFoundException("Owner with id %d not found".formatted(ownerId));
                 }
         );
+    }
+
+    public void deleteOwner(int ownerId) {
+        if (ownerRepository.existsById(ownerId)) {
+            ownerRepository.deleteById(ownerId);
+            applicationEventPublisher.publishEvent(ownerMapper.ownerDeleted(ownerId));
+        }
     }
 }

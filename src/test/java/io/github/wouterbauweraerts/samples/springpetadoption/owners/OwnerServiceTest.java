@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
@@ -41,6 +43,8 @@ class OwnerServiceTest {
     OwnerRepository ownerRepository;
     @Mock
     PetService petService;
+    @Mock
+    ApplicationEventPublisher eventPublisher;
 
     @Spy
     OwnerMapper ownerMapper = Mappers.getMapper(OwnerMapper.class);
@@ -129,5 +133,27 @@ class OwnerServiceTest {
 
         assertThat(original.getName()).isEqualTo(request.name());
         verify(ownerRepository).save(updatedOwner);
+    }
+
+    @Test
+    void deleteOwner_doesNotExist_nothingHappens() {
+        when(ownerRepository.existsById(anyInt())).thenReturn(false);
+
+        ownerService.deleteOwner(13);
+
+        verify(ownerRepository).existsById(13);
+        verifyNoMoreInteractions(ownerRepository);
+        verifyNoMoreInteractions(eventPublisher);
+    }
+
+    @Test
+    void deleteOwner_deletesFromRepositoryAndDispatchesEvent() {
+        when(ownerRepository.existsById(anyInt())).thenReturn(true);
+
+        ownerService.deleteOwner(13);
+
+        verify(ownerRepository).existsById(13);
+        verify(ownerRepository).deleteById(13);
+        verify(eventPublisher).publishEvent(new OwnerDeletedEvent(13));
     }
 }

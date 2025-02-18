@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
@@ -22,4 +23,6 @@ public interface OwnerMapper {
 
     @Mapping(target = "id", ignore = true)
     void update(@MappingTarget Owner owner, UpdateOwnerRequest request);
+
+    OwnerDeletedEvent ownerDeleted(Integer ownerId);
 }

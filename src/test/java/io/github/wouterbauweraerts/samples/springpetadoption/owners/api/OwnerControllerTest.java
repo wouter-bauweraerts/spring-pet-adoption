@@ -132,4 +132,13 @@ class OwnerControllerTest {
 
         verify(ownerService).updateOwner(13, updateOwner);
     }
+
+    @Test
+    void deleteOwner_callsService() {
+        assertThat(
+                mockMvc.delete().uri("/owners/13")
+        ).hasStatus(NO_CONTENT);
+
+        verify(ownerService).deleteOwner(13);
+    }
 }
