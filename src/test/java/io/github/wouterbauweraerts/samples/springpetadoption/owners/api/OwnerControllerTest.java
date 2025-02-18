@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.test.json.JsonCompareMode.LENIENT;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -36,11 +37,11 @@ class OwnerControllerTest {
     @Test
     void listOwners() {
         List<OwnerResponse> owners = List.of(
-                new OwnerResponse(1, "Wouter"),
-                new OwnerResponse(2, "Josh"),
-                new OwnerResponse(3, "Alina"),
-                new OwnerResponse(4, "Venkat"),
-                new OwnerResponse(5, "Patrick")
+                new OwnerResponse(1, "Wouter", Map.of("DOG", List.of("Roxy"))),
+                new OwnerResponse(2, "Josh", Map.of()),
+                new OwnerResponse(3, "Alina", Map.of()),
+                new OwnerResponse(4, "Venkat", Map.of()),
+                new OwnerResponse(5, "Patrick", Map.of())
         );
 
         when(ownerService.getOwners(any(Pageable.class))).thenReturn(
@@ -55,15 +56,14 @@ class OwnerControllerTest {
     }
 
     @Test
-    void getOwnerWithExistingOwner_returnsExpected() {
-        OwnerResponse ownerResponse = new OwnerResponse(1, "Wouter");
+    void getOwnerWithExistingOwner_returnsExpected() throws Exception {
+        OwnerResponse ownerResponse = new OwnerResponse(1, "Wouter", Map.of("DOG", List.of("Roxy")));
         when(ownerService.getOwnerById(anyInt())).thenReturn(Optional.of(ownerResponse));
 
-        assertThat(mockMvc.get().uri("/owners/%d".formatted(ownerResponse.id())))
+        assertThat(mockMvc.get().uri("/owners/%d".formatted(ownerResponse.getId())))
                 .hasStatus(OK)
                 .bodyJson()
-                .hasPathSatisfying("$.id", value -> value.assertThat().isEqualTo(ownerResponse.id()))
-                .hasPathSatisfying("$.name", value -> value.assertThat().isEqualTo(ownerResponse.name()));
+                .isEqualTo(objectMapper.writeValueAsString(ownerResponse));
     }
 
     @Test

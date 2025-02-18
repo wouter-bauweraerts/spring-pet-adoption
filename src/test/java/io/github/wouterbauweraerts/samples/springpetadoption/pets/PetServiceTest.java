@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -107,5 +108,29 @@ class PetServiceTest {
         assertThat(petService.addPet(addPetRequest)).isEqualTo(expectedResponse);
 
         verify(petRepository).save(newPet);
+    }
+
+    @Test
+    void getPetsForOwner_noPets_returnsEmptyMap() {
+        when(petRepository.findAllByOwnerId(anyInt())).thenReturn(List.of());
+
+        assertThat(petService.getPetsForOwner(1)).isEmpty();
+    }
+
+    @Test
+    void getPetsForOwner_returnsExpectedMap() {
+        Pet roxy = new Pet(1, "Roxy", DOG, 1);
+        Pet rex = new Pet(2, "Rex", DOG, 1);
+        Pet filou = new Pet(3, "Filou", CAT, 1);
+
+        List<Pet> pets = List.of(roxy, rex, filou);
+        when(petRepository.findAllByOwnerId(anyInt())).thenReturn(pets);
+
+        assertThat(petService.getPetsForOwner(1)).containsExactlyInAnyOrderEntriesOf(
+                Map.of(
+                        "DOG", List.of("Roxy", "Rex"),
+                        "CAT", List.of("Filou")
+                )
+        );
     }
 }

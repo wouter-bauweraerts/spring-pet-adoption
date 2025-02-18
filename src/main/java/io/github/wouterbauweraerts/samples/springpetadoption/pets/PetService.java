@@ -1,6 +1,9 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Service;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 
 @Service
@@ -42,5 +46,10 @@ public class PetService {
                         petMapper.toEnity(addPetRequest)
                 )
         );
+    }
+
+    public Map<String, List<String>> getPetsForOwner(Integer ownerId) {
+        return petRepository.findAllByOwnerId(ownerId)
+                .stream().collect(Collectors.groupingBy(pet -> pet.getType().name(), Collectors.mapping(Pet::getName, Collectors.toList())));
     }
 }

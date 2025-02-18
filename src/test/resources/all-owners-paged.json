@@ -2,7 +2,10 @@
   "content": [
     {
       "id": 1,
-      "name": "Wouter"
+      "name": "Wouter",
+      "pets": {
+        "DOG": ["Roxy"]
+      }
     },
     {
       "id": 2,

@@ -3,6 +3,7 @@ package io.github.wouterbauweraerts.samples.springpetadoption.owners.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -25,7 +26,7 @@ class OwnerMapperTest {
         ).map(owner -> dynamicTest(
                 "%s maps to expected".formatted(owner),
                 () -> {
-                    OwnerResponse expected = Objects.isNull(owner) ? null : new OwnerResponse(owner.getId(), owner.getName());
+                    OwnerResponse expected = Objects.isNull(owner) ? null : new OwnerResponse(owner.getId(), owner.getName(), Map.of());
                     assertThat(ownerMapper.map(owner)).isEqualTo(expected);
                 }
         ));

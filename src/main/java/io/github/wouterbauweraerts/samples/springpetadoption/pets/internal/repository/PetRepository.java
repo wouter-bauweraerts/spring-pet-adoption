@@ -1,5 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +14,6 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domai
 public interface PetRepository extends JpaRepository<Pet, Integer> {
     @Query("SELECT p FROM Pet p WHERE p.ownerId IS NULL")
     Page<Pet> findPetsAvailableForAdoption(Pageable pageable);
+
+    List<Pet> findAllByOwnerId(Integer ownerId);
 }
