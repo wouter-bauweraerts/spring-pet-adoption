@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.OwnerMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
@@ -86,5 +87,19 @@ class OwnerServiceTest {
 
         assertThat(ownerService.getOwnerById(1)).hasValue(expected);
         verify(ownerRepository).findById(1);
+    }
+
+    @Test
+    void addOwner_returnsExpected() {
+        AddOwnerRequest request = new AddOwnerRequest("Mario");
+        Owner unpersistedOwner = new Owner(null, "Mario");
+        Owner persistedOwner = new Owner(13, "Mario");
+        OwnerResponse expected = new OwnerResponse(13, "Mario", Map.of());
+
+        when(ownerRepository.save(any(Owner.class))).thenReturn(persistedOwner);
+
+        assertThat(ownerService.addOwner(request)).isEqualTo(expected);
+
+        verify(ownerRepository).save(unpersistedOwner);
     }
 }

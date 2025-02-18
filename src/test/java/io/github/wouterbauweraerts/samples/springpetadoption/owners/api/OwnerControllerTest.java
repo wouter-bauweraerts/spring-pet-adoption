@@ -1,27 +1,36 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.json.JsonCompareMode.LENIENT;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 
 @WebMvcTest(OwnerController.class)
@@ -72,5 +81,40 @@ class OwnerControllerTest {
 
         assertThat(mockMvc.get().uri("/owners/666"))
                 .hasStatus(404);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> addOwner_invalidRequest_returnsBadRequest() {
+        return Stream.of(
+                        null,
+                        "",
+                        " ",
+                        "\t",
+                        "\n"
+                ).map(AddOwnerRequest::new)
+                .map(request -> dynamicTest(
+                        "Add owner with name %s should return HTTP400".formatted(request.name()),
+                        () -> assertThat(
+                                mockMvc.post().uri("/owners")
+                                        .contentType(APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(request))
+                        ).hasStatus(BAD_REQUEST)
+                ));
+    }
+
+    @Test
+    void addOwner_returnsExpected() throws Exception {
+        AddOwnerRequest addOwner = new AddOwnerRequest("Mario");
+        OwnerResponse createdOwner = new OwnerResponse(13, "Mario", Map.of());
+
+        when(ownerService.addOwner(any(AddOwnerRequest.class))).thenReturn(createdOwner);
+
+        assertThat(
+                mockMvc.post().uri("/owners")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addOwner))
+        ).hasStatus(CREATED)
+                .bodyJson()
+                .isEqualTo(objectMapper.writeValueAsString(createdOwner));
     }
 }

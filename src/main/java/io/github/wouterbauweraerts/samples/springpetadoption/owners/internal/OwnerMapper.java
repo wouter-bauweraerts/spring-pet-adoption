@@ -6,6 +6,7 @@ import static org.mapstruct.ReportingPolicy.ERROR;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
 
@@ -13,4 +14,7 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.dom
 public interface OwnerMapper {
     @Mapping(target = "pets", expression = "java(java.util.Map.of())")
     OwnerResponse map(Owner owner);
+
+    @Mapping(target = "id", ignore = true)
+    Owner toEntity(AddOwnerRequest request);
 }

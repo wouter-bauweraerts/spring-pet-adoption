@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.OwnerMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.repository.OwnerRepository;
@@ -33,5 +34,13 @@ public class OwnerService {
         return ownerRepository.findById(ownerId)
                 .map(ownerMapper::map)
                 .map(owner -> owner.addPets(petService.getPetsForOwner(owner.getId())));
+    }
+
+    public OwnerResponse addOwner(AddOwnerRequest request) {
+        return ownerMapper.map(
+                ownerRepository.save(
+                        ownerMapper.toEntity(request)
+                )
+        );
     }
 }
