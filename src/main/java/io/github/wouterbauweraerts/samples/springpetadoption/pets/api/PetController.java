@@ -31,8 +31,9 @@ public class PetController {
         return ResponseEntity.of(petService.getPet(petId));
     }
 
+    @GetMapping("/available-for-adoption")
     public Page<PetResponse> findAvailablePets(Pageable page) {
-        return Page.empty();
+        return petService.getPetsAvailableForAdoption(page);
     }
 
     public PetResponse addPet(AddPetRequest addPet) {

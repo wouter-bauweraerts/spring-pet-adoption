@@ -94,4 +94,20 @@ class PetControllerTest {
                 .hasPathSatisfying("$.name", value -> value.assertThat().isEqualTo(petResponse.name()))
                 .hasPathSatisfying("$.type", value -> value.assertThat().isEqualTo(petResponse.type()));
     }
+
+    @Test
+    void findAvailablePetsReturnsExpected_fromResource() {
+        List<PetResponse> pets = List.of(
+                new PetResponse(2, "Rex", "Dog"),
+                new PetResponse(3, "Filou", "Cat")
+        );
+
+        when(petService.getPetsAvailableForAdoption(any(Pageable.class))).thenReturn(new PageImpl<>(pets));
+
+        assertThat(mockMvc.get().uri("/pets/available-for-adoption"))
+                .hasStatus(OK)
+                .bodyJson()
+                .withResourceLoadClass(null)
+                .isEqualTo("all-available-pets-paged.json", JsonCompareMode.LENIENT);
+    }
 }

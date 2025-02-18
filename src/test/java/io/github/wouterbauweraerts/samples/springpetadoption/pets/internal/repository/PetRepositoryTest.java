@@ -33,16 +33,16 @@ class PetRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        pet1 = petRepository.save(new Pet(null, "Roxy", DOG));
-        pet2 = petRepository.save(new Pet(null, "Rex", DOG));
-        pet3 = petRepository.save(new Pet(null, "Filou", CAT));
-        pet4 = petRepository.save(new Pet(null, "Bella", CAT));
-        pet5 = petRepository.save(new Pet(null, "Luna", HAMSTER));
-        pet6 = petRepository.save(new Pet(null, "Hammy", HAMSTER));
-        pet7 = petRepository.save(new Pet(null, "Michelangelo", TURTLE));
-        pet8 = petRepository.save(new Pet(null, "Donatello", TURTLE));
-        pet9 = petRepository.save(new Pet(null, "Leonardo", GOAT));
-        pet10 = petRepository.save(new Pet(null, "Raphael", GOAT));
+        pet1 = petRepository.save(new Pet(null, "Roxy", DOG, "Wouter"));
+        pet2 = petRepository.save(new Pet(null, "Rex", DOG, null));
+        pet3 = petRepository.save(new Pet(null, "Filou", CAT, null));
+        pet4 = petRepository.save(new Pet(null, "Bella", CAT, null));
+        pet5 = petRepository.save(new Pet(null, "Luna", HAMSTER, null));
+        pet6 = petRepository.save(new Pet(null, "Hammy", HAMSTER, null));
+        pet7 = petRepository.save(new Pet(null, "Michelangelo", TURTLE, null));
+        pet8 = petRepository.save(new Pet(null, "Donatello", TURTLE, null));
+        pet9 = petRepository.save(new Pet(null, "Leonardo", GOAT, null));
+        pet10 = petRepository.save(new Pet(null, "Raphael", GOAT, null));
     }
 
     @AfterEach
@@ -97,5 +97,31 @@ class PetRepositoryTest {
     @Test
     void findById_withNonExistingId_returnsEmpty() {
         assertThat(petRepository.findById(-1)).isEmpty();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> findPetsAvailableForAdoption_returnsExpected() {
+        return Stream.of(
+                Pair.of(
+                        PageRequest.of(0, 2),
+                        List.of(pet2, pet3)
+                ),
+                Pair.of(
+                        PageRequest.of(0, 5),
+                        List.of(pet2, pet3, pet4, pet5, pet6)
+                ),
+                Pair.of(
+                        PageRequest.of(0, 20),
+                        List.of(pet2, pet3, pet4, pet5, pet6, pet7, pet8, pet9, pet10)
+                ),
+                Pair.of(
+                        PageRequest.of(3, 2),
+                        List.of(pet8, pet9)
+                )
+        ).map(pair -> dynamicTest(
+                "findPetsAvailableForAdoption with pagination params %s returns expected elements %s"
+                        .formatted(pair.getFirst(), pair.getSecond().stream().map(Pet::getId).toList()),
+                () -> assertThat(petRepository.findPetsAvailableForAdoption(pair.getFirst())).containsExactlyInAnyOrderElementsOf(pair.getSecond())
+        ));
     }
 }

@@ -1,0 +1,14 @@
+{
+  "content": [
+    {
+      "id": 2,
+      "name": "Rex",
+      "type": "Dog"
+    },
+    {
+      "id": 3,
+      "name": "Filou",
+      "type": "Cat"
+    }
+  ]
+}

@@ -25,13 +25,17 @@ public class Pet {
     @Enumerated(STRING)
     private PetType type;
 
+    @Column(name = "owner")
+    private String owner;
+
     public Pet() {
     }
 
-    public Pet(Integer id, String name, PetType type) {
+    public Pet(Integer id, String name, PetType type, String owner) {
         this.id = id;
         this.name = name;
         this.type = type;
+        this.owner = owner;
     }
 
     public Integer getId() {
@@ -58,14 +62,25 @@ public class Pet {
         this.type = type;
     }
 
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Pet pet)) return false;
-        return Objects.equals(id, pet.id) && Objects.equals(name, pet.name) && type == pet.type;
+        return Objects.equals(id, pet.id)
+                && Objects.equals(name, pet.name)
+                && type == pet.type
+                && Objects.equals(owner, pet.owner);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type);
+        return Objects.hash(id, name, type, owner);
     }
 }

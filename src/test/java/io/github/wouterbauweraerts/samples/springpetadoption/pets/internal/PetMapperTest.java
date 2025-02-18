@@ -27,15 +27,15 @@ class PetMapperTest {
     Stream<DynamicTest> mapFromPetToPetResponse_returnsExpected() {
         return Stream.of(
                 Pair.of(
-                        new Pet(1, "Roxy", DOG),
+                        new Pet(1, "Roxy", DOG, "Wouter"),
                         new PetResponse(1, "Roxy", DOG.name())
                 ),
                 Pair.of(
-                        new Pet(1, null, DOG),
+                        new Pet(1, null, DOG, null),
                         new PetResponse(1, null, DOG.name())
                 ),
                 Pair.of(
-                        new Pet(1, "Roxy", null),
+                        new Pet(1, "Roxy", null, "Wouter"),
                         new PetResponse(1, "Roxy", null)
                 )
         ).map(pair -> dynamicTest(

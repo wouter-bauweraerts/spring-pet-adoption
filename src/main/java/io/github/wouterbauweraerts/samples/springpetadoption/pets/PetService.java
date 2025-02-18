@@ -29,4 +29,9 @@ public class PetService {
         return petRepository.findById(petId)
                 .map(petMapper::map);
     }
+
+    public Page<PetResponse> getPetsAvailableForAdoption(Pageable pageable) {
+        return petRepository.findPetsAvailableForAdoption(pageable)
+                .map(petMapper::map);
+    }
 }

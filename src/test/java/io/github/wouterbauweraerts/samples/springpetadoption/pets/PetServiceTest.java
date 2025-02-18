@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
@@ -41,9 +40,9 @@ class PetServiceTest {
     void getPets_executesPaginatesQueryAndReturnsExpected() {
         Pageable pageRequest = mock(Pageable.class);
         List<Pet> petEntities = List.of(
-                new Pet(1, "Roxy", DOG),
-                new Pet(2, "Rex", DOG),
-                new Pet(3, "Filou", CAT)
+                new Pet(1, "Roxy", DOG, "Wouter"),
+                new Pet(2, "Rex", DOG, null),
+                new Pet(3, "Filou", CAT, null)
         );
 
         List<PetResponse> petDtos = List.of(
@@ -59,7 +58,7 @@ class PetServiceTest {
 
     @Test
     void getPet_findsPetByIdAndReturnsExpected() {
-        Pet petEntity = new Pet(1, "Roxy", DOG);
+        Pet petEntity = new Pet(1, "Roxy", DOG, "Wouter");
         PetResponse petDto = new PetResponse(1, "Roxy", DOG.name());
 
         when(petRepository.findById(anyInt())).thenReturn(java.util.Optional.of(petEntity));
@@ -74,5 +73,23 @@ class PetServiceTest {
         assertThat(petService.getPet(1)).isEmpty();
 
         verifyNoInteractions(petMapper);
+    }
+
+    @Test
+    void getPetsAvailableForAdoption_returnsExpected() {
+        List<Pet> petEntities = List.of(
+                new Pet(2, "Rex", DOG, null),
+                new Pet(3, "Filou", CAT, null)
+        );
+
+        List<PetResponse> petDtos = List.of(
+                new PetResponse(2, "Rex", DOG.name()),
+                new PetResponse(3, "Filou", CAT.name())
+        );
+
+        when(petRepository.findPetsAvailableForAdoption(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(petEntities));
+
+        assertThat(petService.getPetsAvailableForAdoption(mock(Pageable.class))).containsExactlyElementsOf(petDtos);
     }
 }
