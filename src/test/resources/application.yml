@@ -1,0 +1,4 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:tc:postgresql:latest:///pet-adoption
