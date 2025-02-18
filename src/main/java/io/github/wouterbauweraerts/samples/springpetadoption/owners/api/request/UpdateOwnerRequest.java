@@ -1,4 +1,6 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request;
 
-public class UpdateOwnerRequest {
+import jakarta.validation.constraints.NotBlank;
+
+public record UpdateOwnerRequest(@NotBlank String name) {
 }

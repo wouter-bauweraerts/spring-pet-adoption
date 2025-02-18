@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -45,6 +46,9 @@ public class OwnerController {
         return ownerService.addOwner(request);
     }
 
-    public void updateOwner(UpdateOwnerRequest request) {
+    @PutMapping("/{ownerId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateOwner(@PathVariable Integer ownerId, @RequestBody @Valid UpdateOwnerRequest request) {
+        ownerService.updateOwner(ownerId, request);
     }
 }

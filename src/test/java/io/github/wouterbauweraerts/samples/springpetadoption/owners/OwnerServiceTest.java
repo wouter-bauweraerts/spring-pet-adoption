@@ -1,6 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,11 +24,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.OwnerMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.repository.OwnerRepository;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
+import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class OwnerServiceTest {
@@ -101,5 +104,30 @@ class OwnerServiceTest {
         assertThat(ownerService.addOwner(request)).isEqualTo(expected);
 
         verify(ownerRepository).save(unpersistedOwner);
+    }
+
+    @Test
+    void updateOwner_notFound() {
+        UpdateOwnerRequest request = new UpdateOwnerRequest("Maria");
+
+        when(ownerRepository.findById(anyInt())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> ownerService.updateOwner(13, request))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Owner with id 13 not found");
+    }
+
+    @Test
+    void updateOwner_updatesExistingAndSaves() {
+        Owner original = new Owner(13, "Mario");
+        UpdateOwnerRequest request = new UpdateOwnerRequest("Maria");
+        Owner updatedOwner = new Owner(13, "Maria");
+
+        when(ownerRepository.findById(anyInt())).thenReturn(Optional.of(original));
+
+        ownerService.updateOwner(13, request);
+
+        assertThat(original.getName()).isEqualTo(request.name());
+        verify(ownerRepository).save(updatedOwner);
     }
 }

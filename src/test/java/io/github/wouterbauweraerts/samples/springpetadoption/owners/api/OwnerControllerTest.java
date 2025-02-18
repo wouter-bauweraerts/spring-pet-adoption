@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.json.JsonCompareMode.LENIENT;
@@ -31,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 
 @WebMvcTest(OwnerController.class)
@@ -116,5 +119,17 @@ class OwnerControllerTest {
         ).hasStatus(CREATED)
                 .bodyJson()
                 .isEqualTo(objectMapper.writeValueAsString(createdOwner));
+    }
+
+    @Test
+    void updateOwner_callsService() throws Exception{
+        UpdateOwnerRequest updateOwner = new UpdateOwnerRequest("Maria");
+        assertThat(
+                mockMvc.put().uri("/owners/13")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateOwner))
+        ).hasStatus(NO_CONTENT);
+
+        verify(ownerService).updateOwner(13, updateOwner);
     }
 }
