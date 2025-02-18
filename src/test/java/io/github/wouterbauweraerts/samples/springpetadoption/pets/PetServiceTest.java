@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
@@ -91,5 +93,19 @@ class PetServiceTest {
                 .thenReturn(new PageImpl<>(petEntities));
 
         assertThat(petService.getPetsAvailableForAdoption(mock(Pageable.class))).containsExactlyElementsOf(petDtos);
+    }
+
+    @Test
+    void addPetCreatedNewPetAndPersist() {
+        AddPetRequest addPetRequest = new AddPetRequest("Goofy", "DOG");
+        Pet newPet = new Pet(null, "Goofy", DOG, null);
+        Pet persistedPet = new Pet(42, "Goofy", DOG, null);
+        PetResponse expectedResponse = new PetResponse(42, "Goofy", "DOG");
+
+        when(petRepository.save(any(Pet.class))).thenReturn(persistedPet);
+
+        assertThat(petService.addPet(addPetRequest)).isEqualTo(expectedResponse);
+
+        verify(petRepository).save(newPet);
     }
 }

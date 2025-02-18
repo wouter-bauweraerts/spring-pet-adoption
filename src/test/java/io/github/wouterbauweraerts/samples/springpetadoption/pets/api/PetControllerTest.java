@@ -1,16 +1,25 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.api;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
@@ -19,9 +28,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 
 @WebMvcTest(PetController.class)
@@ -109,5 +120,51 @@ class PetControllerTest {
                 .bodyJson()
                 .withResourceLoadClass(null)
                 .isEqualTo("all-available-pets-paged.json", JsonCompareMode.LENIENT);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> addPetWithInvalidRequest_returnsBadRequestStatus() {
+        return Stream.of(
+                new AddPetRequest(null, null),
+                new AddPetRequest("", null),
+                new AddPetRequest(" ", null),
+                new AddPetRequest("Goofy", null),
+                new AddPetRequest(null, "CAT"),
+                new AddPetRequest("Mickey", "MOUSE")
+        ).map(req -> DynamicTest.dynamicTest(
+                "addPet with invalid request %s returns BadRequest".formatted(req),
+                () -> {
+                    try {
+                        assertThat(
+                                mockMvc.post()
+                                        .uri("/pets")
+                                        .contentType(APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(req))
+                        ).hasStatus(BAD_REQUEST);
+                    } catch (JsonProcessingException e) {
+                        fail("Unexpected JsonProcessingException", e);
+                    }
+                }
+        ));
+    }
+
+    @Test
+    void addPet_withValidRequest_callsServiceToCreateNewPet() throws Exception{
+        AddPetRequest goofy = new AddPetRequest("Goofy", DOG.name());
+        PetResponse expectedResponse = new PetResponse(42, "Goofy", DOG.name());
+
+        when(petService.addPet(any())).thenReturn(expectedResponse);
+
+        assertThat(
+                mockMvc.post().uri("/pets")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(goofy))
+        ).hasStatus(CREATED)
+                .bodyJson()
+                .hasPathSatisfying("$.id", value -> value.assertThat().isEqualTo(expectedResponse.id()))
+                .hasPathSatisfying("$.name", value -> value.assertThat().isEqualTo(expectedResponse.name()))
+                .hasPathSatisfying("$.type", value -> value.assertThat().isEqualTo(expectedResponse.type()));
+
+        verify(petService).addPet(goofy);
     }
 }

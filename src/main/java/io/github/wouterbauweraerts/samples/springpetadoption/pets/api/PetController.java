@@ -1,16 +1,23 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.api;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/pets")
@@ -36,7 +43,9 @@ public class PetController {
         return petService.getPetsAvailableForAdoption(page);
     }
 
-    public PetResponse addPet(AddPetRequest addPet) {
-        return null;
+    @PostMapping
+    @ResponseStatus(CREATED)
+    public PetResponse addPet(@RequestBody @Valid AddPetRequest addPetRequest) {
+        return petService.addPet(addPetRequest);
     }
 }

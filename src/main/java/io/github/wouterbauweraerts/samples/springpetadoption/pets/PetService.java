@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
@@ -33,5 +34,13 @@ public class PetService {
     public Page<PetResponse> getPetsAvailableForAdoption(Pageable pageable) {
         return petRepository.findPetsAvailableForAdoption(pageable)
                 .map(petMapper::map);
+    }
+
+    public PetResponse addPet(AddPetRequest addPetRequest) {
+        return petMapper.map(
+                petRepository.save(
+                        petMapper.toEnity(addPetRequest)
+                )
+        );
     }
 }

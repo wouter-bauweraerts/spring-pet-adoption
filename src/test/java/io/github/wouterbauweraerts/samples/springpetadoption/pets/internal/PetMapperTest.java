@@ -4,6 +4,7 @@ import static io.github.wouterbauweraerts.samples.springpetadoption.pets.interna
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicTest;
@@ -12,8 +13,10 @@ import org.junit.jupiter.api.TestFactory;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.util.Pair;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 
 class PetMapperTest {
     PetMapper mapper = Mappers.getMapper(PetMapper.class);
@@ -41,6 +44,21 @@ class PetMapperTest {
         ).map(pair -> dynamicTest(
                 "%s maps to %s".formatted(pair.getFirst(), pair.getSecond()),
                 () -> assertThat(mapper.map(pair.getFirst())).isEqualTo(pair.getSecond())
+        ));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> toEntity_mapsToExpected() {
+        return Stream.of(
+                null,
+                new AddPetRequest(null, "CAT"),
+                new AddPetRequest("Michelangelo", "TURTLE")
+        ).map(req -> dynamicTest(
+                "%s is mapped to expected entity",
+                () -> {
+                    Pet pet = Objects.isNull(req) ? null : new Pet(null, req.name(), PetType.valueOf(req.type()), null);
+                    assertThat(mapper.toEnity(req)).isEqualTo(pet);
+                }
         ));
     }
 }
