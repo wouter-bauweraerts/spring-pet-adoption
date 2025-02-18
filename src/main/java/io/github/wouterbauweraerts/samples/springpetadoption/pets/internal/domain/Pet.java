@@ -24,18 +24,17 @@ public class Pet {
     @Column(name = "pet_type")
     @Enumerated(STRING)
     private PetType type;
-
-    @Column(name = "owner")
-    private String owner;
+    @Column(name = "owner_id")
+    private Integer ownerId;
 
     public Pet() {
     }
 
-    public Pet(Integer id, String name, PetType type, String owner) {
+    public Pet(Integer id, String name, PetType type, Integer ownerId) {
         this.id = id;
         this.name = name;
         this.type = type;
-        this.owner = owner;
+        this.ownerId = ownerId;
     }
 
     public Integer getId() {
@@ -62,12 +61,12 @@ public class Pet {
         this.type = type;
     }
 
-    public String getOwner() {
-        return owner;
+    public Integer getOwnerId() {
+        return ownerId;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
     }
 
     @Override
@@ -76,11 +75,11 @@ public class Pet {
         return Objects.equals(id, pet.id)
                 && Objects.equals(name, pet.name)
                 && type == pet.type
-                && Objects.equals(owner, pet.owner);
+                && Objects.equals(ownerId, pet.ownerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, owner);
+        return Objects.hash(id, name, type, ownerId);
     }
 }

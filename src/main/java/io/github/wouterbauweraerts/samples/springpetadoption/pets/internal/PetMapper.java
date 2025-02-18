@@ -14,6 +14,6 @@ public abstract class PetMapper {
     public abstract PetResponse map(Pet pet);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "ownerId", ignore = true)
     public abstract Pet toEnity(AddPetRequest request);
 }

@@ -10,6 +10,6 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domai
 
 @Repository
 public interface PetRepository extends JpaRepository<Pet, Integer> {
-    @Query("SELECT p FROM Pet p WHERE p.owner IS NULL")
+    @Query("SELECT p FROM Pet p WHERE p.ownerId IS NULL")
     Page<Pet> findPetsAvailableForAdoption(Pageable pageable);
 }

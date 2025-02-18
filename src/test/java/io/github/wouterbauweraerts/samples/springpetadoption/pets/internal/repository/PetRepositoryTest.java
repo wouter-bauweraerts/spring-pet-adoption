@@ -33,7 +33,7 @@ class PetRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        pet1 = petRepository.save(new Pet(null, "Roxy", DOG, "Wouter"));
+        pet1 = petRepository.save(new Pet(null, "Roxy", DOG, 1));
         pet2 = petRepository.save(new Pet(null, "Rex", DOG, null));
         pet3 = petRepository.save(new Pet(null, "Filou", CAT, null));
         pet4 = petRepository.save(new Pet(null, "Bella", CAT, null));

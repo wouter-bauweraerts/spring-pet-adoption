@@ -42,7 +42,7 @@ class PetServiceTest {
     void getPets_executesPaginatesQueryAndReturnsExpected() {
         Pageable pageRequest = mock(Pageable.class);
         List<Pet> petEntities = List.of(
-                new Pet(1, "Roxy", DOG, "Wouter"),
+                new Pet(1, "Roxy", DOG, 1),
                 new Pet(2, "Rex", DOG, null),
                 new Pet(3, "Filou", CAT, null)
         );
@@ -60,7 +60,7 @@ class PetServiceTest {
 
     @Test
     void getPet_findsPetByIdAndReturnsExpected() {
-        Pet petEntity = new Pet(1, "Roxy", DOG, "Wouter");
+        Pet petEntity = new Pet(1, "Roxy", DOG, 1);
         PetResponse petDto = new PetResponse(1, "Roxy", DOG.name());
 
         when(petRepository.findById(anyInt())).thenReturn(java.util.Optional.of(petEntity));
