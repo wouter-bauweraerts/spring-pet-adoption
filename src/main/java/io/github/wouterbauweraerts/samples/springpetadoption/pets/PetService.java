@@ -1,5 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification.adoptablePetSearchSpecification;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,12 +12,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptablePetSearch;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -60,5 +65,20 @@ public class PetService {
     @ApplicationModuleListener
     public void onOwnerDeleted(OwnerDeletedEvent ownerDeletedEvent) {
         petRepository.deleteAllByOwnerId(ownerDeletedEvent.ownerId());
+    }
+
+    public Page<PetResponse> searchAdoptablePets(AdoptablePetSearch search, Pageable pageable) {
+        Page<Pet> pets;
+        List<PetType> types = search.getTypes().stream()
+                .map(PetType::valueOf)
+                .toList();
+
+        if (types.isEmpty() && search.getNames().isEmpty()) {
+            pets =  petRepository.findPetsAvailableForAdoption(pageable);
+        } else {
+            pets = petRepository.findAll(adoptablePetSearchSpecification(types, search.getNames()), pageable);
+        }
+
+        return pets.map(petMapper::map);
     }
 }

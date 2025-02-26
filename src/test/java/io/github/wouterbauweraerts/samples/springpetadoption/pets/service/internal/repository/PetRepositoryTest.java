@@ -5,6 +5,7 @@ import static io.github.wouterbauweraerts.samples.springpetadoption.pets.interna
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.GOAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.HAMSTER;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.TURTLE;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification.adoptablePetSearchSpecification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
@@ -138,5 +140,64 @@ class PetRepositoryTest {
         assertThat(petRepository.findAll()).contains(pet3, pet4, pet6);
         petRepository.deleteAllByOwnerId(3);
         assertThat(petRepository.findAll()).doesNotContain(pet3, pet4, pet6);
+    }
+
+    @Test
+    void findAll_pagedWithSpecification_noSearchParams_returnsExpected() {
+        Specification<Pet> spec = adoptablePetSearchSpecification(List.of(), List.of());
+
+        assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
+                .containsExactlyInAnyOrder(
+                        pet2, pet5, pet7, pet8, pet9, pet10
+                );
+    }
+
+    @Test
+    void findAll_pagedWithSpecification_noSearchParams_paginated_returnsExpected() {
+        Specification<Pet> spec = adoptablePetSearchSpecification(List.of(), List.of());
+
+        assertThat(petRepository.findAll(spec, PageRequest.of(0, 2)))
+                .containsExactlyInAnyOrder(
+                        pet2, pet5
+                );
+    }
+
+    @Test
+    void findAll_pagedWithSpecification_namesOnly_returnsExpected() {
+        Specification<Pet> spec = adoptablePetSearchSpecification(
+                List.of(),
+                List.of("Roxy", "Rex", "Luna", "Donatello", "Frank", "Frey")
+        );
+
+        assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
+                .containsExactlyInAnyOrder(
+                        pet2, pet5, pet8
+                );
+    }
+
+    @Test
+    void findAll_pagedWithSpecification_namesAndTypes_returnsExpected() {
+        Specification<Pet> spec = adoptablePetSearchSpecification(
+                List.of(DOG, HAMSTER),
+                List.of("Roxy", "Rex", "Luna", "Donatello", "Frank", "Frey")
+        );
+
+        assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
+                .containsExactlyInAnyOrder(
+                        pet2, pet5
+                );
+    }
+
+    @Test
+    void findAll_pagedWithSpecification_typesOnly_returnsExpected() {
+        Specification<Pet> spec = adoptablePetSearchSpecification(
+                List.of(DOG, GOAT),
+                List.of()
+        );
+
+        assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
+                .containsExactlyInAnyOrder(
+                        pet2, pet9, pet10
+                );
     }
 }
