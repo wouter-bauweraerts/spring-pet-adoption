@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_USER=adoption'
+      - 'POSTGRES_PASSWORD=verySecure123!'
+      - 'POSTGRES_DB=pet-adoption'
+    ports:
+      - '5432:5432'
