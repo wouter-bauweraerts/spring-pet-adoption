@@ -13,9 +13,13 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -143,5 +147,30 @@ class PetServiceTest {
         petService.onOwnerDeleted(ownerDeletedEvent);
 
         verify(petRepository).deleteAllByOwnerId(ownerDeletedEvent.ownerId());
+    }
+
+    @ParameterizedTest
+    @MethodSource("noAdoptablePetSource")
+    void getPetForAdoption_returnsEmpty(Optional<Pet> optionalPet) {
+
+        when(petRepository.findById(anyInt())).thenReturn(optionalPet);
+        assertThat(petService.getPetForAdoption(666)).isEmpty();
+    }
+
+    private static Stream<Arguments> noAdoptablePetSource() {
+        return Stream.of(
+                Arguments.of(Optional.empty()),
+                Arguments.of(Optional.of(new Pet(1, "Roxy", DOG, 1)))
+        );
+    }
+
+    @Test
+    void getPetForAdoption_returnsExpected() {
+        Pet petEntity = new Pet(1, "Vasco", DOG, null);
+        PetResponse petDto = new PetResponse(1, "Vasco", DOG.name());
+
+        when(petRepository.findById(anyInt())).thenReturn(Optional.of(petEntity));
+
+        assertThat(petService.getPetForAdoption(petEntity.getId())).hasValue(petDto);
     }
 }

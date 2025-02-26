@@ -1,6 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification.adoptablePetSearchSpecification;
+import static java.util.Optional.empty;
 
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,15 @@ public class PetService {
                 .stream().collect(Collectors.groupingBy(pet -> pet.getType().name(), Collectors.mapping(Pet::getName, Collectors.toList())));
     }
 
+    public Optional<PetResponse> getPetForAdoption(Integer petId) {
+        Optional<Pet> pet = petRepository.findById(petId);
+        return pet.flatMap(
+                p -> p.isAvailableForAdoption()
+                        ? pet
+                        : empty()
+        ).map(petMapper::map);
+    }
+
     @Transactional
     @ApplicationModuleListener
     public void onOwnerDeleted(OwnerDeletedEvent ownerDeletedEvent) {
@@ -74,7 +84,7 @@ public class PetService {
                 .toList();
 
         if (types.isEmpty() && search.getNames().isEmpty()) {
-            pets =  petRepository.findPetsAvailableForAdoption(pageable);
+            pets = petRepository.findPetsAvailableForAdoption(pageable);
         } else {
             pets = petRepository.findAll(adoptablePetSearchSpecification(types, search.getNames()), pageable);
         }

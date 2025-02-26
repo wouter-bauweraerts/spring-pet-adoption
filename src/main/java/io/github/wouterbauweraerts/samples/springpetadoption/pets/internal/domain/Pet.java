@@ -2,10 +2,12 @@ package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.doma
 
 import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
+import static java.util.Objects.isNull;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -92,5 +94,9 @@ public class Pet {
                 .add("type=" + type)
                 .add("ownerId=" + ownerId)
                 .toString();
+    }
+
+    public boolean isAvailableForAdoption() {
+        return isNull(ownerId);
     }
 }
