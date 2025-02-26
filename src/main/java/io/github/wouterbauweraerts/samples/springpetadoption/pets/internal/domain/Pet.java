@@ -4,6 +4,7 @@ import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -81,5 +82,15 @@ public class Pet {
     @Override
     public int hashCode() {
         return Objects.hash(id, name, type, ownerId);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", Pet.class.getSimpleName() + "[", "]")
+                .add("id=" + id)
+                .add("name='" + name + "'")
+                .add("type=" + type)
+                .add("ownerId=" + ownerId)
+                .toString();
     }
 }

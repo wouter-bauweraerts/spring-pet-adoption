@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.pets;
+package io.github.wouterbauweraerts.samples.springpetadoption.pets.service;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
@@ -24,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
@@ -132,5 +134,14 @@ class PetServiceTest {
                         "CAT", List.of("Filou")
                 )
         );
+    }
+
+    @Test
+    void onOwnerDeletedAllPetsOfOwnerAreDeleted() {
+        OwnerDeletedEvent ownerDeletedEvent = new OwnerDeletedEvent(13);
+
+        petService.onOwnerDeleted(ownerDeletedEvent);
+
+        verify(petRepository).deleteAllByOwnerId(ownerDeletedEvent.ownerId());
     }
 }

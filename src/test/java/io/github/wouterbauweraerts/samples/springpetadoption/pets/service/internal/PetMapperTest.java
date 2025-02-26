@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal;
+package io.github.wouterbauweraerts.samples.springpetadoption.pets.service.internal;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +15,7 @@ import org.springframework.data.util.Pair;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 

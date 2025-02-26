@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository;
+package io.github.wouterbauweraerts.samples.springpetadoption.pets.service.internal.repository;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 
 @DataJpaTest
 class PetRepositoryTest {
@@ -35,10 +36,10 @@ class PetRepositoryTest {
     void setUp() {
         pet1 = petRepository.save(new Pet(null, "Roxy", DOG, 1));
         pet2 = petRepository.save(new Pet(null, "Rex", DOG, null));
-        pet3 = petRepository.save(new Pet(null, "Filou", CAT, null));
-        pet4 = petRepository.save(new Pet(null, "Bella", CAT, null));
+        pet3 = petRepository.save(new Pet(null, "Filou", CAT, 3));
+        pet4 = petRepository.save(new Pet(null, "Bella", CAT, 3));
         pet5 = petRepository.save(new Pet(null, "Luna", HAMSTER, null));
-        pet6 = petRepository.save(new Pet(null, "Hammy", HAMSTER, null));
+        pet6 = petRepository.save(new Pet(null, "Hammy", HAMSTER, 3));
         pet7 = petRepository.save(new Pet(null, "Michelangelo", TURTLE, null));
         pet8 = petRepository.save(new Pet(null, "Donatello", TURTLE, null));
         pet9 = petRepository.save(new Pet(null, "Leonardo", GOAT, null));
@@ -104,24 +105,38 @@ class PetRepositoryTest {
         return Stream.of(
                 Pair.of(
                         PageRequest.of(0, 2),
-                        List.of(pet2, pet3)
+                        List.of(pet2, pet5)
                 ),
                 Pair.of(
                         PageRequest.of(0, 5),
-                        List.of(pet2, pet3, pet4, pet5, pet6)
+                        List.of(pet2, pet5, pet7, pet8, pet9)
                 ),
                 Pair.of(
                         PageRequest.of(0, 20),
-                        List.of(pet2, pet3, pet4, pet5, pet6, pet7, pet8, pet9, pet10)
+                        List.of(pet2, pet5, pet7, pet8, pet9, pet10)
                 ),
                 Pair.of(
-                        PageRequest.of(3, 2),
-                        List.of(pet8, pet9)
+                        PageRequest.of(2, 2),
+                        List.of(pet9, pet10)
                 )
         ).map(pair -> dynamicTest(
                 "findPetsAvailableForAdoption with pagination params %s returns expected elements %s"
                         .formatted(pair.getFirst(), pair.getSecond().stream().map(Pet::getId).toList()),
                 () -> assertThat(petRepository.findPetsAvailableForAdoption(pair.getFirst())).containsExactlyInAnyOrderElementsOf(pair.getSecond())
         ));
+    }
+
+    @Test
+    void findAllByOwnerId_returnsExpectedPets() {
+        assertThat(petRepository.findAllByOwnerId(3)).containsExactlyInAnyOrder(
+                pet3, pet4, pet6
+        );
+    }
+
+    @Test
+    void deleteAllByOwnerId_deletesExpectedPets() {
+        assertThat(petRepository.findAll()).contains(pet3, pet4, pet6);
+        petRepository.deleteAllByOwnerId(3);
+        assertThat(petRepository.findAll()).doesNotContain(pet3, pet4, pet6);
     }
 }

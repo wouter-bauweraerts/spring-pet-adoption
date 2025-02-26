@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.owners;
+package io.github.wouterbauweraerts.samples.springpetadoption.owners.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,9 +25,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.OwnerMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.repository.OwnerRepository;

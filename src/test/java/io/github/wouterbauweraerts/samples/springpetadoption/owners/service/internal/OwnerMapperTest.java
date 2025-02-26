@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.owners.internal;
+package io.github.wouterbauweraerts.samples.springpetadoption.owners.service.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.mapstruct.factory.Mappers;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.OwnerMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
 
 class OwnerMapperTest {

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +17,8 @@ public interface PetRepository extends JpaRepository<Pet, Integer> {
     Page<Pet> findPetsAvailableForAdoption(Pageable pageable);
 
     List<Pet> findAllByOwnerId(Integer ownerId);
+
+    @Modifying
+    @Query("DELETE FROM Pet p WHERE p.ownerId = :ownerId")
+    void deleteAllByOwnerId(Integer ownerId);
 }
