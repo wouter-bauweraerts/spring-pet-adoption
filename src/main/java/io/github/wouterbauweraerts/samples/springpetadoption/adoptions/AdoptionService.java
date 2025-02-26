@@ -9,6 +9,7 @@ import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.reque
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.internal.AdoptionMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
+import jakarta.transaction.Transactional;
 
 @Service
 public class AdoptionService {
@@ -24,6 +25,7 @@ public class AdoptionService {
         this.publisher = publisher;
     }
 
+    @Transactional
     public void adopt(AdoptPetCommand command) {
         validateAdoption(command.ownerId(), command.petId());
 

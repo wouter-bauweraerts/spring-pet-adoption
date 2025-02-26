@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI definition",
+    "title": "Pet Adoption",
     "version": "v0"
   },
   "servers": [

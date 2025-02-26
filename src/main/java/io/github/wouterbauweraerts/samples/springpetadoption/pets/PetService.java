@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -22,11 +24,11 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMa
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification;
-import jakarta.transaction.Transactional;
 
 @Service
 public class PetService {
+    private static final Logger log = LoggerFactory.getLogger(PetService.class);
+
     private final PetRepository petRepository;
     private final PetMapper petMapper;
 
@@ -72,9 +74,10 @@ public class PetService {
         ).map(petMapper::map);
     }
 
-    @Transactional
     @ApplicationModuleListener
     public void onOwnerDeleted(OwnerDeletedEvent ownerDeletedEvent) {
+        log.info("Received OwnerDeletedEvent for owner with id {}", ownerDeletedEvent.ownerId());
+
         petRepository.deleteAllByOwnerId(ownerDeletedEvent.ownerId());
     }
 
@@ -93,9 +96,9 @@ public class PetService {
         return pets.map(petMapper::map);
     }
 
-    @Transactional
     @ApplicationModuleListener
     public void onPetAdopted(PetAdoptedEvent event) {
+        log.info("Received PetAdoptedEvent for pet with id {} and owner with id {}", event.petId(), event.ownerId());
         petRepository.findById(event.petId()).ifPresentOrElse(
                 pet -> {
                     pet.setOwnerId(event.ownerId());

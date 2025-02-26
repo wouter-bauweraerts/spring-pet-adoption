@@ -66,6 +66,7 @@ public class OwnerService {
         );
     }
 
+    @Transactional
     public void deleteOwner(int ownerId) {
         if (ownerRepository.existsById(ownerId)) {
             ownerRepository.deleteById(ownerId);
