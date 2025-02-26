@@ -1,5 +1,6 @@
 @org.springframework.modulith.ApplicationModule(
-        type = ApplicationModule.Type.OPEN
+        type = ApplicationModule.Type.OPEN,
+        displayName = "OwnerEvents"
 )
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.events;
 

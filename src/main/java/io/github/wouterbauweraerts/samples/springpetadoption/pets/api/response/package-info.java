@@ -1,5 +1,6 @@
 @ApplicationModule(
-        type = ApplicationModule.Type.OPEN
+        type = ApplicationModule.Type.OPEN,
+        displayName = "PetResponses"
 )
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response;
 

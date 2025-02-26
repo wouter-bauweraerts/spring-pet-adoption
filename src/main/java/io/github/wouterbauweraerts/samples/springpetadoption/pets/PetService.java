@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptablePetSearch;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
@@ -90,5 +91,19 @@ public class PetService {
         }
 
         return pets.map(petMapper::map);
+    }
+
+    @Transactional
+    @ApplicationModuleListener
+    public void onPetAdopted(PetAdoptedEvent event) {
+        petRepository.findById(event.petId()).ifPresentOrElse(
+                pet -> {
+                    pet.setOwnerId(event.ownerId());
+                    petRepository.save(pet);
+                },
+                () -> {
+                    throw new IllegalStateException("Pet %d not found".formatted(event.petId()));
+                }
+        );
     }
 }

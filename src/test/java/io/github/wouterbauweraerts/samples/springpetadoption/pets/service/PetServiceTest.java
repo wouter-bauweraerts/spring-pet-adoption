@@ -3,6 +3,7 @@ package io.github.wouterbauweraerts.samples.springpetadoption.pets.service;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
@@ -172,5 +174,29 @@ class PetServiceTest {
         when(petRepository.findById(anyInt())).thenReturn(Optional.of(petEntity));
 
         assertThat(petService.getPetForAdoption(petEntity.getId())).hasValue(petDto);
+    }
+
+    @Test
+    void onPetAdoptedEvent_whenPetNotFound_throwsExpected() {
+        PetAdoptedEvent event = new PetAdoptedEvent(1, 666);
+
+        when(petRepository.findById(anyInt())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> petService.onPetAdopted(event))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Pet %d not found".formatted(event.petId()));
+    }
+
+    @Test
+    void onPetAdoptedEvent_setsTheOwnerFromAPet() {
+        PetAdoptedEvent event = new PetAdoptedEvent(1, 666);
+        Pet unadoptedPet = new Pet(666, "Vasco", DOG, null);
+        Pet adoptedPet = new Pet(666, "Vasco", DOG, 1);
+
+        when(petRepository.findById(anyInt())).thenReturn(Optional.of(unadoptedPet));
+
+        petService.onPetAdopted(event);
+
+        verify(petRepository).save(adoptedPet);
     }
 }
