@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.pets.service;
+package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
@@ -31,7 +31,6 @@ import org.springframework.data.domain.Pageable;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;

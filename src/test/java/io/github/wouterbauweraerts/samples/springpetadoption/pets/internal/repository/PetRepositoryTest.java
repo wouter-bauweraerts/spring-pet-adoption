@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.pets.service.internal.repository;
+package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
@@ -26,7 +26,6 @@ import org.springframework.data.util.Pair;
 import org.springframework.test.context.jdbc.Sql;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 
 @DataJpaTest
 @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "/data/PETS.sql")
