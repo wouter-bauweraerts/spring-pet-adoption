@@ -1,5 +1,8 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.aValidAdoptPetCommand;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponseFixtures.anOwnerResponse;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponseFixtures.aPetResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -7,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -49,7 +51,7 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenPetNotAdoptable_throwsExpected() {
-        AdoptPetCommand command = new AdoptPetCommand(1, 666);
+        AdoptPetCommand command = aValidAdoptPetCommand();
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.empty());
 
@@ -62,8 +64,8 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenOwnerNotFound_throwsExpected() {
-        AdoptPetCommand command = new AdoptPetCommand(1, 666);
-        PetResponse pet = new PetResponse(1, "Vasco", "DOG");
+        AdoptPetCommand command = aValidAdoptPetCommand();
+        PetResponse pet = aPetResponse();
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
         when(ownerService.getOwnerById(command.ownerId())).thenReturn(Optional.empty());
@@ -77,9 +79,9 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenValid_publishesExpected() {
-        AdoptPetCommand command = new AdoptPetCommand(1, 666);
-        PetResponse pet = new PetResponse(666, "Vasco", "DOG");
-        OwnerResponse owner = new OwnerResponse(1, "Joske", Map.of());
+        AdoptPetCommand command = aValidAdoptPetCommand();
+        PetResponse pet = aPetResponse();
+        OwnerResponse owner = anOwnerResponse();
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
         when(ownerService.getOwnerById(command.ownerId())).thenReturn(Optional.of(owner));
