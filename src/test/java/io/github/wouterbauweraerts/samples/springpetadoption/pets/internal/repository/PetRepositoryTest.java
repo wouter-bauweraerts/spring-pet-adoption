@@ -1,4 +1,4 @@
-package io.github.wouterbauweraerts.samples.springpetadoption.pets.service.internal.repository;
+package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
@@ -25,7 +25,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 
 @DataJpaTest
 class PetRepositoryTest {
