@@ -1,5 +1,12 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.aValidAdoptPetCommand;
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anEmptyAdoptPetCommand;
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anInvalidAdoptPetCommandWithNegativeIds;
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anInvalidAdoptPetCommandWithNegativeOwnerId;
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anInvalidAdoptPetCommandWithNegativePetId;
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anInvalidAdoptPetCommandWithOwnerId;
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anInvalidAdoptPetCommandWithPetId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,7 +14,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -105,12 +111,12 @@ class AdoptionControllerTest {
     @TestFactory
     Stream<DynamicTest> adoptWithInvalidCommand_badRequest() {
         return Stream.of(
-                new AdoptPetCommand(null, null),
-                new AdoptPetCommand(1, null),
-                new AdoptPetCommand(null, 1),
-                new AdoptPetCommand(1, -1),
-                new AdoptPetCommand(-1, -1),
-                new AdoptPetCommand(-1, 1)
+                anEmptyAdoptPetCommand(),
+                anInvalidAdoptPetCommandWithOwnerId(),
+                anInvalidAdoptPetCommandWithPetId(),
+                anInvalidAdoptPetCommandWithNegativePetId(),
+                anInvalidAdoptPetCommandWithNegativeIds(),
+                anInvalidAdoptPetCommandWithNegativeOwnerId()
         ).map(req -> dynamicTest(
                 "POST to /adoptions with request %s returns HTTP400".formatted(req),
                 () -> {
@@ -127,7 +133,7 @@ class AdoptionControllerTest {
 
     @TestFactory
     Stream<DynamicTest> adoptWithValidRequest_callsService_whenServiceThrows_thenBadRequest() {
-        AdoptPetCommand adoptPetCommand = new AdoptPetCommand(1, 1);
+        AdoptPetCommand adoptPetCommand = aValidAdoptPetCommand();
         return Stream.of(
                 new PetNotFoundException("Pet %d is not available for adoption.".formatted(adoptPetCommand.petId())),
                 new OwnerNotFoundException("Owner %d is not available for adoption.".formatted(adoptPetCommand.ownerId()))
@@ -148,7 +154,7 @@ class AdoptionControllerTest {
 
     @Test
     void adoptPet_noExceptionThrown_returnsNoContent() throws Exception{
-        AdoptPetCommand adoptPetCommand = new AdoptPetCommand(13, 666);
+        AdoptPetCommand adoptPetCommand = aValidAdoptPetCommand();
 
         doNothing().when(adoptionService).adopt(any(AdoptPetCommand.class));
 
