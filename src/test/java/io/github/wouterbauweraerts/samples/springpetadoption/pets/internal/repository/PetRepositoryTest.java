@@ -8,44 +8,31 @@ import static io.github.wouterbauweraerts.samples.springpetadoption.pets.interna
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification.adoptablePetSearchSpecification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
+import org.springframework.test.context.jdbc.Sql;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
 
 @DataJpaTest
+@Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "/data/PETS.sql")
+@Sql(executionPhase = AFTER_TEST_METHOD, scripts = "/data/CLEANUP.sql")
 class PetRepositoryTest {
     @Autowired
     PetRepository petRepository;
-
-    Pet pet1, pet2, pet3, pet4, pet5, pet6, pet7, pet8, pet9, pet10;
-
-    @BeforeEach
-    void setUp() {
-        pet1 = petRepository.save(new Pet(null, "Roxy", DOG, 1));
-        pet2 = petRepository.save(new Pet(null, "Rex", DOG, null));
-        pet3 = petRepository.save(new Pet(null, "Filou", CAT, 3));
-        pet4 = petRepository.save(new Pet(null, "Bella", CAT, 3));
-        pet5 = petRepository.save(new Pet(null, "Luna", HAMSTER, null));
-        pet6 = petRepository.save(new Pet(null, "Hammy", HAMSTER, 3));
-        pet7 = petRepository.save(new Pet(null, "Michelangelo", TURTLE, null));
-        pet8 = petRepository.save(new Pet(null, "Donatello", TURTLE, null));
-        pet9 = petRepository.save(new Pet(null, "Leonardo", GOAT, null));
-        pet10 = petRepository.save(new Pet(null, "Raphael", GOAT, null));
-    }
 
     @AfterEach
     void tearDown() {
@@ -53,11 +40,8 @@ class PetRepositoryTest {
     }
 
     @Test
-    void findAll_unpaged_returnsAll() {
-        assertThat(petRepository.findAll(Pageable.unpaged()))
-                .containsExactlyInAnyOrder(
-                        pet1, pet2, pet3, pet4, pet5, pet6, pet7, pet8, pet9, pet10
-                );
+    void contains20Pets() {
+        assertThat(petRepository.count()).isEqualTo(20);
     }
 
     @TestFactory
@@ -65,19 +49,27 @@ class PetRepositoryTest {
         return Stream.of(
                 Pair.of(
                         PageRequest.of(0, 2),
-                        List.of(pet1, pet2)
+                        List.of(
+                                new Pet(1, "Aloïs", CAT, null),
+                                new Pet(2, "Marie-thérèse", HAMSTER, null)
+                        )
                 ),
                 Pair.of(
                         PageRequest.of(0, 5),
-                        List.of(pet1, pet2, pet3, pet4, pet5)
-                ),
-                Pair.of(
-                        PageRequest.of(0, 20),
-                        List.of(pet1, pet2, pet3, pet4, pet5, pet6, pet7, pet8, pet9, pet10)
+                        List.of(
+                                new Pet(1, "Aloïs", CAT, null),
+                                new Pet(2, "Marie-thérèse", HAMSTER, null),
+                                new Pet(3, "Thérèsa", TURTLE, null),
+                                new Pet(4, "Amélie", HAMSTER, null),
+                                new Pet(5, "Loïca", DOG, null)
+                        )
                 ),
                 Pair.of(
                         PageRequest.of(3, 2),
-                        List.of(pet7, pet8)
+                        List.of(
+                                new Pet(7, "Adélie", HAMSTER, null),
+                                new Pet(8, "Mélina", CAT, null)
+                        )
                 )
         ).map(pair -> dynamicTest(
                 "findAll with pagination params %s returns expected elements %s"
@@ -89,7 +81,11 @@ class PetRepositoryTest {
     @TestFactory
     Stream<DynamicTest> findById_returnsExpected() {
         return Stream.of(
-                pet1, pet2, pet3, pet4, pet5, pet6
+                new Pet(1, "Aloïs", CAT, null),
+                new Pet(2, "Marie-thérèse", HAMSTER, null),
+                new Pet(3, "Thérèsa", TURTLE, null),
+                new Pet(14, "Pélagie", CAT, 56),
+                new Pet(5, "Loïca", DOG, null)
         ).map(p -> dynamicTest(
                 "findById with id %d returns %s".formatted(p.getId(), p),
                 () -> assertThat(petRepository.findById(p.getId())).hasValue(p)
@@ -106,19 +102,27 @@ class PetRepositoryTest {
         return Stream.of(
                 Pair.of(
                         PageRequest.of(0, 2),
-                        List.of(pet2, pet5)
+                        List.of(
+                                new Pet(1, "Aloïs", CAT, null),
+                                new Pet(2, "Marie-thérèse", HAMSTER, null)
+                        )
                 ),
                 Pair.of(
                         PageRequest.of(0, 5),
-                        List.of(pet2, pet5, pet7, pet8, pet9)
-                ),
-                Pair.of(
-                        PageRequest.of(0, 20),
-                        List.of(pet2, pet5, pet7, pet8, pet9, pet10)
+                        List.of(
+                                new Pet(1, "Aloïs", CAT, null),
+                                new Pet(2, "Marie-thérèse", HAMSTER, null),
+                                new Pet(3, "Thérèsa", TURTLE, null),
+                                new Pet(4, "Amélie", HAMSTER, null),
+                                new Pet(5, "Loïca", DOG, null)
+                        )
                 ),
                 Pair.of(
                         PageRequest.of(2, 2),
-                        List.of(pet9, pet10)
+                        List.of(
+                                new Pet(5, "Loïca", DOG, null),
+                                new Pet(7, "Adélie", HAMSTER, null)
+                        )
                 )
         ).map(pair -> dynamicTest(
                 "findPetsAvailableForAdoption with pagination params %s returns expected elements %s"
@@ -129,16 +133,22 @@ class PetRepositoryTest {
 
     @Test
     void findAllByOwnerId_returnsExpectedPets() {
-        assertThat(petRepository.findAllByOwnerId(3)).containsExactlyInAnyOrder(
-                pet3, pet4, pet6
+        assertThat(petRepository.findAllByOwnerId(56)).containsExactlyInAnyOrder(
+                new Pet(13, "Mélys", GOAT, 56),
+                new Pet(14, "Pélagie", CAT, 56)
         );
     }
 
     @Test
     void deleteAllByOwnerId_deletesExpectedPets() {
-        assertThat(petRepository.findAll()).contains(pet3, pet4, pet6);
-        petRepository.deleteAllByOwnerId(3);
-        assertThat(petRepository.findAll()).doesNotContain(pet3, pet4, pet6);
+        Pet goat = new Pet(13, "Mélys", GOAT, 56);
+        Pet cat = new Pet(14, "Pélagie", CAT, 56);
+
+        assertThat(petRepository.findAll()).contains(goat, cat);
+
+        petRepository.deleteAllByOwnerId(56);
+
+        assertThat(petRepository.findAll()).doesNotContain(goat, cat);
     }
 
     @Test
@@ -147,7 +157,20 @@ class PetRepositoryTest {
 
         assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
                 .containsExactlyInAnyOrder(
-                        pet2, pet5, pet7, pet8, pet9, pet10
+                        new Pet(1, "Aloïs", CAT, null),
+                        new Pet(2, "Marie-thérèse", HAMSTER, null),
+                        new Pet(3, "Thérèsa", TURTLE, null),
+                        new Pet(4, "Amélie", HAMSTER, null),
+                        new Pet(5, "Loïca", DOG, null),
+                        new Pet(7, "Adélie", HAMSTER, null),
+                        new Pet(8, "Mélina", CAT, null),
+                        new Pet(9, "Noëlla", DOG, null),
+                        new Pet(10, "Camélia", DOG, null),
+                        new Pet(11, "Neville", TURTLE, null),
+                        new Pet(12, "Cécile", DOG, null),
+                        new Pet(16, "Yáo", DOG, null),
+                        new Pet(17, "Mén", TURTLE, null),
+                        new Pet(19, "Anaëlle", CAT, null)
                 );
     }
 
@@ -157,7 +180,8 @@ class PetRepositoryTest {
 
         assertThat(petRepository.findAll(spec, PageRequest.of(0, 2)))
                 .containsExactlyInAnyOrder(
-                        pet2, pet5
+                        new Pet(1, "Aloïs", CAT, null),
+                        new Pet(2, "Marie-thérèse", HAMSTER, null)
                 );
     }
 
@@ -165,12 +189,14 @@ class PetRepositoryTest {
     void findAll_pagedWithSpecification_namesOnly_returnsExpected() {
         Specification<Pet> spec = adoptablePetSearchSpecification(
                 List.of(),
-                List.of("Roxy", "Rex", "Luna", "Donatello", "Frank", "Frey")
+                List.of("Roxy", "Camélia", "Loïca", "Adélie", "Camélia", "Frey")
         );
 
         assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
                 .containsExactlyInAnyOrder(
-                        pet2, pet5, pet8
+                        new Pet(5, "Loïca", DOG, null),
+                        new Pet(7, "Adélie", HAMSTER, null),
+                        new Pet(10, "Camélia", DOG, null)
                 );
     }
 
@@ -178,12 +204,14 @@ class PetRepositoryTest {
     void findAll_pagedWithSpecification_namesAndTypes_returnsExpected() {
         Specification<Pet> spec = adoptablePetSearchSpecification(
                 List.of(DOG, HAMSTER),
-                List.of("Roxy", "Rex", "Luna", "Donatello", "Frank", "Frey")
+                List.of("Loïca", "Adélie", "Dà", "Camélia")
         );
 
         assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
                 .containsExactlyInAnyOrder(
-                        pet2, pet5
+                        new Pet(5, "Loïca", DOG, null),
+                        new Pet(7, "Adélie", HAMSTER, null),
+                        new Pet(10, "Camélia", DOG, null)
                 );
     }
 
@@ -196,7 +224,11 @@ class PetRepositoryTest {
 
         assertThat(petRepository.findAll(spec, PageRequest.of(0, 20)))
                 .containsExactlyInAnyOrder(
-                        pet2, pet9, pet10
+                        new Pet(5, "Loïca", DOG, null),
+                        new Pet(9, "Noëlla", DOG, null),
+                        new Pet(10, "Camélia", DOG, null),
+                        new Pet(12, "Cécile", DOG, null),
+                        new Pet(16, "Yáo", DOG, null)
                 );
     }
 }

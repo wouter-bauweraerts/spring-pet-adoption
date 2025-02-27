@@ -4,5 +4,9 @@ spring:
     url: jdbc:tc:postgresql:latest:///pet-adoption
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      schema-locations: classpath:data/schema.sql
+      mode: always
