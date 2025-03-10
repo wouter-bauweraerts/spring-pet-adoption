@@ -1,6 +1,5 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponseFixtures.anOwnerResponse;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponseFixtures.aPetResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -9,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import net.datafaker.Faker;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,7 +85,14 @@ class AdoptionServiceTest {
     void adopt_whenValid_publishesExpected() {
         AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
         PetResponse pet = aPetResponse();
-        OwnerResponse owner = anOwnerResponse();
+        OwnerResponse owner = new OwnerResponse(
+                FAKER.number().positive(),
+                FAKER.name().fullName(),
+                Map.of(
+                        FAKER.options().option(PetType.class).name(),
+                        List.of(FAKER.animal().name())
+                )
+        );
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
         when(ownerService.getOwnerById(command.ownerId())).thenReturn(Optional.of(owner));

@@ -8,10 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
-import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures;
+import net.datafaker.Faker;
 
 @DataJpaTest
 class OwnerRepositoryTest {
+    private static Faker FAKER = new Faker();
 
     @Autowired
     OwnerRepository repository;
@@ -20,7 +21,10 @@ class OwnerRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        owner = repository.save(OwnerFixtures.anUnperstedOwner());
+        owner = repository.save(new Owner(
+                null,
+                FAKER.name().fullName()
+        ));
     }
 
     @Test

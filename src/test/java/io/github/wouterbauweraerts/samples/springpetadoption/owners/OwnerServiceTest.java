@@ -1,8 +1,5 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtures.anAddOwnerRequest;
-import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequestFixtures.anUpdateOwnerRequest;
-import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,9 +35,12 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.dom
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.repository.OwnerRepository;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import jakarta.persistence.EntityNotFoundException;
+import net.datafaker.Faker;
 
 @ExtendWith(MockitoExtension.class)
 class OwnerServiceTest {
+    private static Faker FAKER = new Faker();
+
     @InjectMocks
     OwnerService ownerService;
 
@@ -58,10 +58,22 @@ class OwnerServiceTest {
 
     @BeforeEach
     void setUp() {
-        owner1 = anOwner();
-        owner2 = anOwner();
-        owner3 = anOwner();
-        owner4 = anOwner();
+        owner1 = new Owner(
+                FAKER.number().positive(),
+                FAKER.name().fullName()
+        );
+        owner2 = new Owner(
+                FAKER.number().positive(),
+                FAKER.name().fullName()
+        );
+        owner3 = new Owner(
+                FAKER.number().positive(),
+                FAKER.name().fullName()
+        );
+        owner4 = new Owner(
+                FAKER.number().positive(),
+                FAKER.name().fullName()
+        );
     }
 
     @Test
@@ -112,7 +124,7 @@ class OwnerServiceTest {
 
     @Test
     void addOwner_returnsExpected() {
-        AddOwnerRequest request = anAddOwnerRequest();
+        AddOwnerRequest request = new AddOwnerRequest(FAKER.name().fullName());
         Owner unpersistedOwner = new Owner(null, request.name());
         Owner persistedOwner = new Owner(13, request.name());
         OwnerResponse expected = new OwnerResponse(persistedOwner.getId(), persistedOwner.getName(), Map.of());
@@ -126,7 +138,7 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_notFound() {
-        UpdateOwnerRequest request = anUpdateOwnerRequest();
+        UpdateOwnerRequest request = new UpdateOwnerRequest(FAKER.name().fullName());
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -137,8 +149,11 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_updatesExistingAndSaves() {
-        Owner original = anOwner();
-        UpdateOwnerRequest request = anUpdateOwnerRequest();
+        Owner original = new Owner(
+                FAKER.number().positive(),
+                FAKER.name().fullName()
+        );
+        UpdateOwnerRequest request = new UpdateOwnerRequest(FAKER.name().fullName());
         Owner updatedOwner = new Owner(original.getId(), request.name());
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.of(original));

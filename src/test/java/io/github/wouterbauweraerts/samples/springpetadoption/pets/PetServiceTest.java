@@ -1,6 +1,5 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEventFixtures.anOwnerDeletedEvent;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anAdoptablePet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
@@ -152,7 +151,7 @@ class PetServiceTest {
 
     @Test
     void onOwnerDeletedAllPetsOfOwnerAreDeleted() {
-        OwnerDeletedEvent ownerDeletedEvent = anOwnerDeletedEvent();
+        OwnerDeletedEvent ownerDeletedEvent = new OwnerDeletedEvent(FAKER.number().positive());
 
         petService.onOwnerDeleted(ownerDeletedEvent);
 
