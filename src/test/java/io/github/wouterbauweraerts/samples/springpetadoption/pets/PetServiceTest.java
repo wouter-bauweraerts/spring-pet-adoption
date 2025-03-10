@@ -1,5 +1,9 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEventFixtures.aPetAdoptedEvent;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEventFixtures.anOwnerDeletedEvent;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anAdoptablePet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,9 +36,12 @@ import org.springframework.data.domain.Pageable;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,16 +57,14 @@ class PetServiceTest {
     void getPets_executesPaginatesQueryAndReturnsExpected() {
         Pageable pageRequest = mock(Pageable.class);
         List<Pet> petEntities = List.of(
-                new Pet(1, "Roxy", DOG, 1),
-                new Pet(2, "Rex", DOG, null),
-                new Pet(3, "Filou", CAT, null)
+                aPet(),
+                PetFixtures.anAdoptablePet(),
+                PetFixtures.anAdoptablePet()
         );
 
-        List<PetResponse> petDtos = List.of(
-                new PetResponse(1, "Roxy", DOG.name()),
-                new PetResponse(2, "Rex", DOG.name()),
-                new PetResponse(3, "Filou", CAT.name())
-        );
+        List<PetResponse> petDtos = petEntities.stream()
+                .map(p -> new PetResponse(p.getId(), p.getName(), p.getType().name()))
+                .toList();
 
         when(petRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(petEntities));
 
@@ -68,8 +73,8 @@ class PetServiceTest {
 
     @Test
     void getPet_findsPetByIdAndReturnsExpected() {
-        Pet petEntity = new Pet(1, "Roxy", DOG, 1);
-        PetResponse petDto = new PetResponse(1, "Roxy", DOG.name());
+        Pet petEntity = aPet();
+        PetResponse petDto = new PetResponse(petEntity.getId(), petEntity.getName(), petEntity.getType().name());
 
         when(petRepository.findById(anyInt())).thenReturn(java.util.Optional.of(petEntity));
 
@@ -88,14 +93,13 @@ class PetServiceTest {
     @Test
     void getPetsAvailableForAdoption_returnsExpected() {
         List<Pet> petEntities = List.of(
-                new Pet(2, "Rex", DOG, null),
-                new Pet(3, "Filou", CAT, null)
+                PetFixtures.anAdoptablePet(),
+                PetFixtures.anAdoptablePet()
         );
 
-        List<PetResponse> petDtos = List.of(
-                new PetResponse(2, "Rex", DOG.name()),
-                new PetResponse(3, "Filou", CAT.name())
-        );
+        List<PetResponse> petDtos = petEntities.stream()
+                .map(p -> new PetResponse(p.getId(), p.getName(), p.getType().name()))
+                .toList();
 
         when(petRepository.findPetsAvailableForAdoption(any(Pageable.class)))
                 .thenReturn(new PageImpl<>(petEntities));
@@ -105,10 +109,14 @@ class PetServiceTest {
 
     @Test
     void addPetCreatedNewPetAndPersist() {
-        AddPetRequest addPetRequest = new AddPetRequest("Goofy", "DOG");
-        Pet newPet = new Pet(null, "Goofy", DOG, null);
-        Pet persistedPet = new Pet(42, "Goofy", DOG, null);
-        PetResponse expectedResponse = new PetResponse(42, "Goofy", "DOG");
+        AddPetRequest addPetRequest = AddPetRequestFixtures.anAddPetRequest();
+        Pet newPet = new Pet(null, addPetRequest.name(), PetType.valueOf(addPetRequest.type()), null);
+        Pet persistedPet = aPet();
+        PetResponse expectedResponse = new PetResponse(
+                persistedPet.getId(),
+                persistedPet.getName(),
+                persistedPet.getType().name()
+        );
 
         when(petRepository.save(any(Pet.class))).thenReturn(persistedPet);
 
@@ -126,24 +134,24 @@ class PetServiceTest {
 
     @Test
     void getPetsForOwner_returnsExpectedMap() {
-        Pet roxy = new Pet(1, "Roxy", DOG, 1);
-        Pet rex = new Pet(2, "Rex", DOG, 1);
-        Pet filou = new Pet(3, "Filou", CAT, 1);
+        Pet pet1 = PetFixtures.aPetWithOwnerAndType(1, DOG);
+        Pet pet2 = PetFixtures.aPetWithOwnerAndType(1, DOG);
+        Pet pet3 = PetFixtures.aPetWithOwnerAndType(1, CAT);
 
-        List<Pet> pets = List.of(roxy, rex, filou);
+        List<Pet> pets = List.of(pet1, pet2, pet3);
         when(petRepository.findAllByOwnerId(anyInt())).thenReturn(pets);
 
         assertThat(petService.getPetsForOwner(1)).containsExactlyInAnyOrderEntriesOf(
                 Map.of(
-                        "DOG", List.of("Roxy", "Rex"),
-                        "CAT", List.of("Filou")
+                        "DOG", List.of(pet1.getName(), pet2.getName()),
+                        "CAT", List.of(pet3.getName())
                 )
         );
     }
 
     @Test
     void onOwnerDeletedAllPetsOfOwnerAreDeleted() {
-        OwnerDeletedEvent ownerDeletedEvent = new OwnerDeletedEvent(13);
+        OwnerDeletedEvent ownerDeletedEvent = anOwnerDeletedEvent();
 
         petService.onOwnerDeleted(ownerDeletedEvent);
 
@@ -161,14 +169,18 @@ class PetServiceTest {
     private static Stream<Arguments> noAdoptablePetSource() {
         return Stream.of(
                 Arguments.of(Optional.empty()),
-                Arguments.of(Optional.of(new Pet(1, "Roxy", DOG, 1)))
+                Arguments.of(Optional.of(aPet()))
         );
     }
 
     @Test
     void getPetForAdoption_returnsExpected() {
-        Pet petEntity = new Pet(1, "Vasco", DOG, null);
-        PetResponse petDto = new PetResponse(1, "Vasco", DOG.name());
+        Pet petEntity = anAdoptablePet();
+        PetResponse petDto = new PetResponse(
+                petEntity.getId(),
+                petEntity.getName(),
+                petEntity.getType().name()
+        );
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.of(petEntity));
 
@@ -177,7 +189,7 @@ class PetServiceTest {
 
     @Test
     void onPetAdoptedEvent_whenPetNotFound_throwsExpected() {
-        PetAdoptedEvent event = new PetAdoptedEvent(1, 666);
+        PetAdoptedEvent event = aPetAdoptedEvent();
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -188,9 +200,9 @@ class PetServiceTest {
 
     @Test
     void onPetAdoptedEvent_setsTheOwnerFromAPet() {
-        PetAdoptedEvent event = new PetAdoptedEvent(1, 666);
-        Pet unadoptedPet = new Pet(666, "Vasco", DOG, null);
-        Pet adoptedPet = new Pet(666, "Vasco", DOG, 1);
+        PetAdoptedEvent event = aPetAdoptedEvent();
+        Pet unadoptedPet = anAdoptablePet();
+        Pet adoptedPet = new Pet(unadoptedPet.getId(), unadoptedPet.getName(), unadoptedPet.getType(), event.ownerId());
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.of(unadoptedPet));
 
