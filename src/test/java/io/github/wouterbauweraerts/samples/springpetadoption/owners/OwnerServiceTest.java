@@ -1,5 +1,8 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtures.anAddOwnerRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequestFixtures.anUpdateOwnerRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -50,30 +54,40 @@ class OwnerServiceTest {
     @Spy
     OwnerMapper ownerMapper = Mappers.getMapper(OwnerMapper.class);
 
+    Owner owner1, owner2, owner3, owner4;
+
+    @BeforeEach
+    void setUp() {
+        owner1 = anOwner();
+        owner2 = anOwner();
+        owner3 = anOwner();
+        owner4 = anOwner();
+    }
+
     @Test
     void getOwners_returnsExpected() {
         Pageable pageable = mock(Pageable.class);
-        List<Owner> entities = List.of(
-                new Owner(1, "Wouter"),
-                new Owner(2, "Alina"),
-                new Owner(3, "Josh"),
-                new Owner(4, "Matthias")
-        );
+        List<Owner> entities = List.of(owner1, owner2, owner3, owner4);
         List<OwnerResponse> expected = List.of(
-                new OwnerResponse(1, "Wouter", Map.of("DOG", List.of("Roxy"))),
-                new OwnerResponse(2, "Alina", Map.of()),
-                new OwnerResponse(3, "Josh", Map.of("DOG", List.of("Production"))),
-                new OwnerResponse(4, "Matthias", Map.of())
+                new OwnerResponse(owner1.getId(), owner1.getName(), Map.of("DOG", List.of("Roxy"))),
+                new OwnerResponse(owner2.getId(), owner2.getName(), Map.of()),
+                new OwnerResponse(owner3.getId(), owner3.getName(), Map.of("DOG", List.of("Production"))),
+                new OwnerResponse(owner4.getId(), owner4.getName(), Map.of())
         );
 
         when(ownerRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(entities));
         when(petService.getPetsForOwner(anyInt()))
-                .thenAnswer(invocation -> switch ((int) invocation.getArgument(0)) {
-                            case 1 -> Map.of("DOG", List.of("Roxy"));
-                            case 3 -> Map.of("DOG", List.of("Production"));
-                            default -> Map.of();
+                .thenAnswer(invocation ->
+                        {
+                            if (invocation.getArgument(0).equals(owner1.getId())) {
+                                return Map.of("DOG", List.of("Roxy"));
+                            } else if (invocation.getArgument(0).equals(owner3.getId())) {
+                                return Map.of("DOG", List.of("Production"));
+                            }
+                            return Map.of();
                         }
                 );
+
         assertThat(ownerService.getOwners(pageable)).containsExactlyInAnyOrderElementsOf(expected);
         verify(ownerRepository).findAll(pageable);
     }
@@ -87,22 +101,21 @@ class OwnerServiceTest {
 
     @Test
     void getOwnerById_returnsExpected() {
-        Owner wouter = new Owner(1, "Wouter");
-        OwnerResponse expected = new OwnerResponse(1, "Wouter", Map.of("DOG", List.of("Roxy")));
+        OwnerResponse expected = new OwnerResponse(owner1.getId(), owner1.getName(), Map.of("DOG", List.of("Roxy")));
 
-        when(ownerRepository.findById(any())).thenReturn(Optional.of(wouter));
-        when(petService.getPetsForOwner(eq(1))).thenReturn(Map.of("DOG", List.of("Roxy")));
+        when(ownerRepository.findById(any())).thenReturn(Optional.of(owner1));
+        when(petService.getPetsForOwner(eq(owner1.getId()))).thenReturn(Map.of("DOG", List.of("Roxy")));
 
-        assertThat(ownerService.getOwnerById(1)).hasValue(expected);
-        verify(ownerRepository).findById(1);
+        assertThat(ownerService.getOwnerById(owner1.getId())).hasValue(expected);
+        verify(ownerRepository).findById(owner1.getId());
     }
 
     @Test
     void addOwner_returnsExpected() {
-        AddOwnerRequest request = new AddOwnerRequest("Mario");
-        Owner unpersistedOwner = new Owner(null, "Mario");
-        Owner persistedOwner = new Owner(13, "Mario");
-        OwnerResponse expected = new OwnerResponse(13, "Mario", Map.of());
+        AddOwnerRequest request = anAddOwnerRequest();
+        Owner unpersistedOwner = new Owner(null, request.name());
+        Owner persistedOwner = new Owner(13, request.name());
+        OwnerResponse expected = new OwnerResponse(persistedOwner.getId(), persistedOwner.getName(), Map.of());
 
         when(ownerRepository.save(any(Owner.class))).thenReturn(persistedOwner);
 
@@ -113,7 +126,7 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_notFound() {
-        UpdateOwnerRequest request = new UpdateOwnerRequest("Maria");
+        UpdateOwnerRequest request = anUpdateOwnerRequest();
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -124,9 +137,9 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_updatesExistingAndSaves() {
-        Owner original = new Owner(13, "Mario");
-        UpdateOwnerRequest request = new UpdateOwnerRequest("Maria");
-        Owner updatedOwner = new Owner(13, "Maria");
+        Owner original = anOwner();
+        UpdateOwnerRequest request = anUpdateOwnerRequest();
+        Owner updatedOwner = new Owner(original.getId(), request.name());
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.of(original));
 
