@@ -1,9 +1,8 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anAdoptablePet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
+import static net.datafaker.transformations.Field.field;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,14 +33,14 @@ import org.springframework.data.domain.Pageable;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEvent;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.BaseFaker;
+import net.datafaker.transformations.Schema;
 
 @ExtendWith(MockitoExtension.class)
 class PetServiceTest {
@@ -57,9 +56,28 @@ class PetServiceTest {
     void getPets_executesPaginatesQueryAndReturnsExpected() {
         Pageable pageRequest = mock(Pageable.class);
         List<Pet> petEntities = List.of(
-                aPet(),
-                PetFixtures.anAdoptablePet(),
-                PetFixtures.anAdoptablePet()
+                BaseFaker.populate(Pet.class, Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> FAKER.options().option(PetType.class)),
+                        field("ownerId", () -> FAKER.number().positive())
+                )),
+                BaseFaker.populate(
+                        Pet.class,
+                        Schema.of(
+                                field("id", () -> FAKER.number().positive()),
+                                field("name", () -> FAKER.dog().name()),
+                                field("type", () -> FAKER.options().option(PetType.class))
+                        )
+                ),
+                BaseFaker.populate(
+                        Pet.class,
+                        Schema.of(
+                                field("id", () -> FAKER.number().positive()),
+                                field("name", () -> FAKER.dog().name()),
+                                field("type", () -> FAKER.options().option(PetType.class))
+                        )
+                )
         );
 
         List<PetResponse> petDtos = petEntities.stream()
@@ -73,7 +91,12 @@ class PetServiceTest {
 
     @Test
     void getPet_findsPetByIdAndReturnsExpected() {
-        Pet petEntity = aPet();
+        Pet petEntity = BaseFaker.populate(Pet.class, Schema.of(
+                field("id", () -> FAKER.number().positive()),
+                field("name", () -> FAKER.dog().name()),
+                field("type", () -> FAKER.options().option(PetType.class)),
+                field("ownerId", () -> FAKER.number().positive())
+        ));
         PetResponse petDto = new PetResponse(petEntity.getId(), petEntity.getName(), petEntity.getType().name());
 
         when(petRepository.findById(anyInt())).thenReturn(java.util.Optional.of(petEntity));
@@ -93,8 +116,22 @@ class PetServiceTest {
     @Test
     void getPetsAvailableForAdoption_returnsExpected() {
         List<Pet> petEntities = List.of(
-                PetFixtures.anAdoptablePet(),
-                PetFixtures.anAdoptablePet()
+                BaseFaker.populate(
+                        Pet.class,
+                        Schema.of(
+                                field("id", () -> FAKER.number().positive()),
+                                field("name", () -> FAKER.dog().name()),
+                                field("type", () -> FAKER.options().option(PetType.class))
+                        )
+                ),
+                BaseFaker.populate(
+                        Pet.class,
+                        Schema.of(
+                                field("id", () -> FAKER.number().positive()),
+                                field("name", () -> FAKER.dog().name()),
+                                field("type", () -> FAKER.options().option(PetType.class))
+                        )
+                )
         );
 
         List<PetResponse> petDtos = petEntities.stream()
@@ -109,9 +146,17 @@ class PetServiceTest {
 
     @Test
     void addPetCreatedNewPetAndPersist() {
-        AddPetRequest addPetRequest = AddPetRequestFixtures.anAddPetRequest();
+        AddPetRequest addPetRequest = BaseFaker.populate(AddPetRequest.class, Schema.of(
+                field("name", () -> FAKER.dog().name()),
+                field("type", () -> FAKER.options().option(PetType.class).name())
+        ));
         Pet newPet = new Pet(null, addPetRequest.name(), PetType.valueOf(addPetRequest.type()), null);
-        Pet persistedPet = aPet();
+        Pet persistedPet = BaseFaker.populate(Pet.class, Schema.of(
+                field("id", () -> FAKER.number().positive()),
+                field("name", () -> FAKER.dog().name()),
+                field("type", () -> FAKER.options().option(PetType.class)),
+                field("ownerId", () -> FAKER.number().positive())
+        ));
         PetResponse expectedResponse = new PetResponse(
                 persistedPet.getId(),
                 persistedPet.getName(),
@@ -134,9 +179,33 @@ class PetServiceTest {
 
     @Test
     void getPetsForOwner_returnsExpectedMap() {
-        Pet pet1 = PetFixtures.aPetWithOwnerAndType(1, DOG);
-        Pet pet2 = PetFixtures.aPetWithOwnerAndType(1, DOG);
-        Pet pet3 = PetFixtures.aPetWithOwnerAndType(1, CAT);
+        Pet pet1 = BaseFaker.populate(
+                Pet.class,
+                Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> DOG),
+                        field("ownerId", () -> 1)
+                )
+        );
+        Pet pet2 = BaseFaker.populate(
+                Pet.class,
+                Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> DOG),
+                        field("ownerId", () -> 1)
+                )
+        );
+        Pet pet3 = BaseFaker.populate(
+                Pet.class,
+                Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> CAT),
+                        field("ownerId", () -> 1)
+                )
+        );
 
         List<Pet> pets = List.of(pet1, pet2, pet3);
         when(petRepository.findAllByOwnerId(anyInt())).thenReturn(pets);
@@ -169,13 +238,25 @@ class PetServiceTest {
     private static Stream<Arguments> noAdoptablePetSource() {
         return Stream.of(
                 Arguments.of(Optional.empty()),
-                Arguments.of(Optional.of(aPet()))
+                Arguments.of(Optional.of(BaseFaker.populate(Pet.class, Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> FAKER.options().option(PetType.class)),
+                        field("ownerId", () -> FAKER.number().positive())
+                ))))
         );
     }
 
     @Test
     void getPetForAdoption_returnsExpected() {
-        Pet petEntity = anAdoptablePet();
+        Pet petEntity = BaseFaker.populate(
+                Pet.class,
+                Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> FAKER.options().option(PetType.class))
+                )
+        );
         PetResponse petDto = new PetResponse(
                 petEntity.getId(),
                 petEntity.getName(),
@@ -201,7 +282,14 @@ class PetServiceTest {
     @Test
     void onPetAdoptedEvent_setsTheOwnerFromAPet() {
         PetAdoptedEvent event = new PetAdoptedEvent(FAKER.number().positive(), FAKER.number().positive());
-        Pet unadoptedPet = anAdoptablePet();
+        Pet unadoptedPet = BaseFaker.populate(
+                Pet.class,
+                Schema.of(
+                        field("id", () -> FAKER.number().positive()),
+                        field("name", () -> FAKER.dog().name()),
+                        field("type", () -> FAKER.options().option(PetType.class))
+                )
+        );
         Pet adoptedPet = new Pet(unadoptedPet.getId(), unadoptedPet.getName(), unadoptedPet.getType(), event.ownerId());
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.of(unadoptedPet));

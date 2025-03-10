@@ -1,6 +1,6 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponseFixtures.aPetResponse;
+import static net.datafaker.transformations.Field.field;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,6 +34,8 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.BaseFaker;
+import net.datafaker.transformations.Schema;
 
 @ExtendWith(MockitoExtension.class)
 class AdoptionServiceTest {
@@ -69,7 +71,11 @@ class AdoptionServiceTest {
     @Test
     void adopt_whenOwnerNotFound_throwsExpected() {
         AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
-        PetResponse pet = aPetResponse();
+        PetResponse pet = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
+                field("id", () -> FAKER.number().positive()),
+                field("name", () -> FAKER.animal().name()),
+                field("type", () -> FAKER.options().option(PetType.class).name())
+        ));
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
         when(ownerService.getOwnerById(command.ownerId())).thenReturn(Optional.empty());
@@ -84,7 +90,11 @@ class AdoptionServiceTest {
     @Test
     void adopt_whenValid_publishesExpected() {
         AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
-        PetResponse pet = aPetResponse();
+        PetResponse pet = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
+                field("id", () -> FAKER.number().positive()),
+                field("name", () -> FAKER.animal().name()),
+                field("type", () -> FAKER.options().option(PetType.class).name())
+        ));
         OwnerResponse owner = new OwnerResponse(
                 FAKER.number().positive(),
                 FAKER.name().fullName(),
