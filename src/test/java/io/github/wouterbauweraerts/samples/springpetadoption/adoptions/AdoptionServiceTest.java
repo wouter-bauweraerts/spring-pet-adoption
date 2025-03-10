@@ -1,6 +1,5 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.aValidAdoptPetCommand;
 import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponseFixtures.anOwnerResponse;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponseFixtures.aPetResponse;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,9 +31,12 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
+import net.datafaker.Faker;
 
 @ExtendWith(MockitoExtension.class)
 class AdoptionServiceTest {
+    private static final Faker FAKER = new Faker();
+
     @InjectMocks
     AdoptionService adoptionService;
     @Mock
@@ -51,7 +53,7 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenPetNotAdoptable_throwsExpected() {
-        AdoptPetCommand command = aValidAdoptPetCommand();
+        AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.empty());
 
@@ -64,7 +66,7 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenOwnerNotFound_throwsExpected() {
-        AdoptPetCommand command = aValidAdoptPetCommand();
+        AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
         PetResponse pet = aPetResponse();
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
@@ -79,7 +81,7 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenValid_publishesExpected() {
-        AdoptPetCommand command = aValidAdoptPetCommand();
+        AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
         PetResponse pet = aPetResponse();
         OwnerResponse owner = anOwnerResponse();
 

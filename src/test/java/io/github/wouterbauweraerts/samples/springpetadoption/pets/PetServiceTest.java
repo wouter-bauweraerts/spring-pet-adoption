@@ -1,6 +1,5 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEventFixtures.aPetAdoptedEvent;
 import static io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEventFixtures.anOwnerDeletedEvent;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anAdoptablePet;
@@ -43,9 +42,11 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domai
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
+import net.datafaker.Faker;
 
 @ExtendWith(MockitoExtension.class)
 class PetServiceTest {
+    private static final Faker FAKER = new Faker();
     @InjectMocks
     PetService petService;
     @Mock
@@ -189,7 +190,7 @@ class PetServiceTest {
 
     @Test
     void onPetAdoptedEvent_whenPetNotFound_throwsExpected() {
-        PetAdoptedEvent event = aPetAdoptedEvent();
+        PetAdoptedEvent event = new PetAdoptedEvent(FAKER.number().positive(), FAKER.number().positive());
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -200,7 +201,7 @@ class PetServiceTest {
 
     @Test
     void onPetAdoptedEvent_setsTheOwnerFromAPet() {
-        PetAdoptedEvent event = aPetAdoptedEvent();
+        PetAdoptedEvent event = new PetAdoptedEvent(FAKER.number().positive(), FAKER.number().positive());
         Pet unadoptedPet = anAdoptablePet();
         Pet adoptedPet = new Pet(unadoptedPet.getId(), unadoptedPet.getName(), unadoptedPet.getType(), event.ownerId());
 
