@@ -1,17 +1,17 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions;
 
-import static net.datafaker.transformations.Field.field;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.instancio.Select.allInts;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import org.instancio.Instancio;
+import org.instancio.Model;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -32,15 +32,9 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
-import net.datafaker.Faker;
-import net.datafaker.providers.base.BaseFaker;
-import net.datafaker.transformations.Schema;
 
 @ExtendWith(MockitoExtension.class)
 class AdoptionServiceTest {
-    private static final Faker FAKER = new Faker();
-
     @InjectMocks
     AdoptionService adoptionService;
     @Mock
@@ -55,9 +49,14 @@ class AdoptionServiceTest {
     @Captor
     ArgumentCaptor<PetAdoptedEvent> eventCaptor;
 
+    // Avoid duplication with models!
+    private static final Model<AdoptPetCommand> ADOPT_PET_COMMAND_MODEL = Instancio.of(AdoptPetCommand.class)
+            .generate(allInts(), gen -> gen.ints().min(1))
+            .toModel();
+
     @Test
     void adopt_whenPetNotAdoptable_throwsExpected() {
-        AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
+        AdoptPetCommand command = Instancio.create(ADOPT_PET_COMMAND_MODEL);
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.empty());
 
@@ -70,12 +69,8 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenOwnerNotFound_throwsExpected() {
-        AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
-        PetResponse pet = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
+        AdoptPetCommand command = Instancio.create(ADOPT_PET_COMMAND_MODEL);
+        PetResponse pet = Instancio.create(PetResponse.class);
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
         when(ownerService.getOwnerById(command.ownerId())).thenReturn(Optional.empty());
@@ -89,20 +84,9 @@ class AdoptionServiceTest {
 
     @Test
     void adopt_whenValid_publishesExpected() {
-        AdoptPetCommand command = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
-        PetResponse pet = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
-        OwnerResponse owner = new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        );
+        AdoptPetCommand command = Instancio.create(ADOPT_PET_COMMAND_MODEL);
+        PetResponse pet = Instancio.create(PetResponse.class);
+        OwnerResponse owner = Instancio.create(OwnerResponse.class);
 
         when(petService.getPetForAdoption(command.petId())).thenReturn(Optional.of(pet));
         when(ownerService.getOwnerById(command.ownerId())).thenReturn(Optional.of(owner));
