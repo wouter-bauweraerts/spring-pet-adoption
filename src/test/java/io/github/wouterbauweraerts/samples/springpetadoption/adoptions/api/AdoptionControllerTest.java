@@ -1,6 +1,8 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.allInts;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -15,6 +17,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -34,11 +37,9 @@ import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.excep
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommand;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptablePetSearch;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
-import net.datafaker.Faker;
 
 @WebMvcTest(AdoptionController.class)
 class AdoptionControllerTest {
-    private static final Faker FAKER = new Faker();
 
     @Autowired
     MockMvcTester mockMvc;
@@ -107,12 +108,29 @@ class AdoptionControllerTest {
     @TestFactory
     Stream<DynamicTest> adoptWithInvalidCommand_badRequest() {
         return Stream.of(
-                new AdoptPetCommand(null, null),
-                new AdoptPetCommand(FAKER.number().positive(), null),
-                new AdoptPetCommand(null, FAKER.number().positive()),
-                new AdoptPetCommand(FAKER.number().positive(), FAKER.number().negative()),
-                new AdoptPetCommand(FAKER.number().negative(), FAKER.number().negative()),
-                new AdoptPetCommand(FAKER.number().negative(), FAKER.number().positive())
+                Instancio.of(AdoptPetCommand.class)
+                        .ignore(allInts())
+                        .create(),
+                Instancio.of(AdoptPetCommand.class)
+                        .generate(field(AdoptPetCommand::ownerId), gen -> gen.ints().min(1))
+                        .ignore(field(AdoptPetCommand::petId))
+                        .create(),
+                Instancio.of(AdoptPetCommand.class)
+                        .generate(field(AdoptPetCommand::petId), gen -> gen.ints().min(1))
+                        .ignore(field(AdoptPetCommand::ownerId))
+                        .create(),
+                Instancio.of(AdoptPetCommand.class)
+                        .generate(field(AdoptPetCommand::petId), gen -> gen.ints().min(-100).max(-1))
+                        .generate(field(AdoptPetCommand::ownerId), gen -> gen.ints().min(1))
+                        .create(),
+                Instancio.of(AdoptPetCommand.class)
+                        .generate(field(AdoptPetCommand::petId), gen -> gen.ints().min(-100).max(-1))
+                        .generate(field(AdoptPetCommand::ownerId), gen -> gen.ints().min(-100).max(-1))
+                        .create(),
+                Instancio.of(AdoptPetCommand.class)
+                        .generate(field(AdoptPetCommand::ownerId), gen -> gen.ints().min(-100).max(-1))
+                        .generate(field(AdoptPetCommand::petId), gen -> gen.ints().min(1))
+                        .create()
         ).map(req -> dynamicTest(
                 "POST to /adoptions with request %s returns HTTP400".formatted(req),
                 () -> {
@@ -129,7 +147,7 @@ class AdoptionControllerTest {
 
     @TestFactory
     Stream<DynamicTest> adoptWithValidRequest_callsService_whenServiceThrows_thenBadRequest() {
-        AdoptPetCommand adoptPetCommand = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
+        AdoptPetCommand adoptPetCommand = Instancio.create(AdoptPetCommand.class);
         return Stream.of(
                 new PetNotFoundException("Pet %d is not available for adoption.".formatted(adoptPetCommand.petId())),
                 new OwnerNotFoundException("Owner %d is not available for adoption.".formatted(adoptPetCommand.ownerId()))
@@ -150,7 +168,7 @@ class AdoptionControllerTest {
 
     @Test
     void adoptPet_noExceptionThrown_returnsNoContent() throws Exception{
-        AdoptPetCommand adoptPetCommand = new AdoptPetCommand(FAKER.number().positive(), FAKER.number().positive());
+        AdoptPetCommand adoptPetCommand = Instancio.create(AdoptPetCommand.class);
 
         doNothing().when(adoptionService).adopt(any(AdoptPetCommand.class));
 
