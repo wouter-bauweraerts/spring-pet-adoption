@@ -1,12 +1,16 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal;
 
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.allInts;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.instancio.Instancio;
+import org.instancio.Model;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -26,33 +30,43 @@ class PetMapperTest {
         assertThat(mapper.map(null)).isNull();
     }
 
+    private static final Model<Pet> PET_MODEL = Instancio.of(Pet.class)
+            .generate(allInts(), gen -> gen.ints().min(1))
+            .generate(field(Pet::getType), gen -> gen.enumOf(PetType.class))
+            .toModel();
+
+    private static final Model<AddPetRequest> ADD_PET_REQUEST_MODEL = Instancio.of(AddPetRequest.class)
+            .generate(field(AddPetRequest::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
+            .toModel();
+
     @TestFactory
     Stream<DynamicTest> mapFromPetToPetResponse_returnsExpected() {
         return Stream.of(
-                Pair.of(
-                        new Pet(1, "Roxy", DOG, 1),
-                        new PetResponse(1, "Roxy", DOG.name())
-                ),
-                Pair.of(
-                        new Pet(1, null, DOG, null),
-                        new PetResponse(1, null, DOG.name())
-                ),
-                Pair.of(
-                        new Pet(1, "Roxy", null, 1),
-                        new PetResponse(1, "Roxy", null)
-                )
-        ).map(pair -> dynamicTest(
-                "%s maps to %s".formatted(pair.getFirst(), pair.getSecond()),
-                () -> assertThat(mapper.map(pair.getFirst())).isEqualTo(pair.getSecond())
-        ));
+                        Instancio.create(PET_MODEL),
+                        Instancio.of(PET_MODEL).ignore(field(Pet::getName)).ignore(field(Pet::getOwnerId)).create(),
+                        Instancio.of(PET_MODEL).ignore(field(Pet::getType)).create()
+                ).map(pet -> Pair.of(
+                        pet,
+                        new PetResponse(
+                                pet.getId(),
+                                pet.getName(),
+                                Optional.ofNullable(pet.getType())
+                                        .map(Enum::name)
+                                        .orElse(null)
+                        )
+                ))
+                .map(pair -> dynamicTest(
+                        "%s maps to %s".formatted(pair.getFirst(), pair.getSecond()),
+                        () -> assertThat(mapper.map(pair.getFirst())).isEqualTo(pair.getSecond())
+                ));
     }
 
     @TestFactory
     Stream<DynamicTest> toEntity_mapsToExpected() {
         return Stream.of(
                 null,
-                new AddPetRequest(null, "CAT"),
-                new AddPetRequest("Michelangelo", "TURTLE")
+                Instancio.of(ADD_PET_REQUEST_MODEL).ignore(field(AddPetRequest::name)).create(),
+                Instancio.create(ADD_PET_REQUEST_MODEL)
         ).map(req -> dynamicTest(
                 "%s is mapped to expected entity",
                 () -> {

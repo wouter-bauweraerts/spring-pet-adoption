@@ -106,13 +106,6 @@
         </dependency>
 
         <dependency>
-            <groupId>net.datafaker</groupId>
-            <artifactId>datafaker</artifactId>
-            <version>${datafaker.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.instancio</groupId>
             <artifactId>instancio-junit</artifactId>
             <version>${instancio.version}</version>

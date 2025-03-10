@@ -1,39 +1,32 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain;
 
-import static net.datafaker.transformations.Field.field;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.allInts;
 
+import org.instancio.Instancio;
+import org.instancio.Model;
+import org.instancio.Select;
 import org.junit.jupiter.api.Test;
 
-import net.datafaker.Faker;
-import net.datafaker.providers.base.BaseFaker;
-import net.datafaker.transformations.Schema;
-
 class PetTest {
-    private static final Faker FAKER = new Faker();
+
+    private static final Model<Pet> PET_MODEL = Instancio.of(Pet.class)
+            .generate(allInts(), gen -> gen.ints().min(1))
+            .generate(Select.field(Pet::getType), gen -> gen.enumOf(PetType.class))
+            .toModel();
 
     @Test
     void petWithOwnerIsNotAvailableForAdoption() {
-        Pet pet = BaseFaker.populate(Pet.class, Schema.of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.dog().name()),
-                field("type", () -> FAKER.options().option(PetType.class)),
-                field("ownerId", () -> FAKER.number().positive())
-        ));
+        Pet pet = Instancio.create(PET_MODEL);
 
         assertThat(pet.isAvailableForAdoption()).isFalse();
     }
 
     @Test
     void petWithoutOwnerIsNotAvailableForAdoption() {
-        Pet pet = BaseFaker.populate(
-                Pet.class,
-                Schema.of(
-                        field("id", () -> FAKER.number().positive()),
-                        field("name", () -> FAKER.dog().name()),
-                        field("type", () -> FAKER.options().option(PetType.class))
-                )
-        );
+        Pet pet = Instancio.of(PET_MODEL)
+                .ignore(Select.field(Pet::getOwnerId))
+                .create();
 
         assertThat(pet.isAvailableForAdoption()).isTrue();
     }

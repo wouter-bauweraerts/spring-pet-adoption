@@ -1,8 +1,11 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.api;
 
-import static net.datafaker.transformations.Field.field;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
+import static org.instancio.Select.all;
+import static org.instancio.Select.allInts;
+import static org.instancio.Select.field;
+import static org.instancio.Select.fields;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
@@ -17,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.instancio.Instancio;
+import org.instancio.Model;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -34,14 +39,9 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
-import net.datafaker.Faker;
-import net.datafaker.providers.base.BaseFaker;
-import net.datafaker.transformations.Schema;
 
 @WebMvcTest(PetController.class)
 class PetControllerTest {
-    private static final Faker FAKER = new Faker();
-
     @Autowired
     MockMvcTester mockMvc;
     @Autowired
@@ -50,23 +50,17 @@ class PetControllerTest {
     @MockitoBean
     PetService petService;
 
+    private static final Model<PetResponse> PET_RESPONSE_MODEL = Instancio.of(PetResponse.class)
+            .generate(allInts(), gen -> gen.ints().min(1))
+            .generate(field(PetResponse::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
+            .toModel();
+
     @Test
     void listPetsReturnsExpected() {
-        PetResponse pet1 = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
-        PetResponse pet2 = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
-        PetResponse pet3 = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
+        PetResponse pet1 = Instancio.create(PET_RESPONSE_MODEL);
+        PetResponse pet2 = Instancio.create(PET_RESPONSE_MODEL);
+        PetResponse pet3 = Instancio.create(PET_RESPONSE_MODEL);
+
         List<PetResponse> pets = List.of(
                 pet1,
                 pet2,
@@ -98,11 +92,7 @@ class PetControllerTest {
 
     @Test
     void getPetWithExistingPet_returnsExpected() {
-        PetResponse petResponse = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
+        PetResponse petResponse = Instancio.create(PET_RESPONSE_MODEL);
         when(petService.getPet(anyInt())).thenReturn(Optional.of(petResponse));
 
         assertThat(mockMvc.get().uri("/pets/%d".formatted(petResponse.id())))
@@ -116,12 +106,26 @@ class PetControllerTest {
     @TestFactory
     Stream<DynamicTest> addPetWithInvalidRequest_returnsBadRequestStatus() {
         return Stream.of(
-                new AddPetRequest(null, null),
-                new AddPetRequest("", null),
-                new AddPetRequest(" ", null),
-                new AddPetRequest("Goofy", null),
-                new AddPetRequest(null, FAKER.options().option(PetType.class).name()),
-                new AddPetRequest("Mickey", "MOUSE")
+                Instancio.of(AddPetRequest.class)
+                        .ignore(fields())
+                        .create(),
+                Instancio.of(AddPetRequest.class)
+                        .ignore(field(AddPetRequest::type))
+                        .set(field(AddPetRequest::name), "")
+                        .create(),
+                Instancio.of(AddPetRequest.class)
+                        .ignore(field(AddPetRequest::type))
+                        .set(field(AddPetRequest::name), " ")
+                        .create(),
+                Instancio.of(AddPetRequest.class)
+                        .ignore(field(AddPetRequest::type))
+                        .set(field(AddPetRequest::name), "Goofy")
+                        .create(),
+                Instancio.of(AddPetRequest.class)
+                        .ignore(field(AddPetRequest::name))
+                        .generate(field(AddPetRequest::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
+                        .create(),
+                Instancio.create(AddPetRequest.class)
         ).map(req -> DynamicTest.dynamicTest(
                 "addPet with invalid request %s returns BadRequest".formatted(req),
                 () -> {
@@ -141,15 +145,10 @@ class PetControllerTest {
 
     @Test
     void addPet_withValidRequest_callsServiceToCreateNewPet() throws Exception {
-        AddPetRequest goofy = BaseFaker.populate(AddPetRequest.class, Schema.of(
-                field("name", () -> FAKER.dog().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
-        PetResponse expectedResponse = BaseFaker.populate(PetResponse.class, Schema.<Object, Object>of(
-                field("id", () -> FAKER.number().positive()),
-                field("name", () -> FAKER.animal().name()),
-                field("type", () -> FAKER.options().option(PetType.class).name())
-        ));
+        AddPetRequest goofy = Instancio.of(AddPetRequest.class)
+                .generate(field(AddPetRequest::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
+                .create();
+        PetResponse expectedResponse = Instancio.create(PET_RESPONSE_MODEL);
 
         when(petService.addPet(any())).thenReturn(expectedResponse);
 
