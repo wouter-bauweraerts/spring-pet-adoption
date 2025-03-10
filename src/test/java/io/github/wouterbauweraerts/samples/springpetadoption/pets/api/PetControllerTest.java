@@ -1,11 +1,12 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.api;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequestWithNameAndType;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequestWithoutName;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anEmptyAddPetRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponseFixtures.aPetResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
-import static org.instancio.Select.all;
-import static org.instancio.Select.allInts;
-import static org.instancio.Select.field;
-import static org.instancio.Select.fields;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
@@ -20,8 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.instancio.Instancio;
-import org.instancio.Model;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 
 @WebMvcTest(PetController.class)
 class PetControllerTest {
@@ -50,16 +48,11 @@ class PetControllerTest {
     @MockitoBean
     PetService petService;
 
-    private static final Model<PetResponse> PET_RESPONSE_MODEL = Instancio.of(PetResponse.class)
-            .generate(allInts(), gen -> gen.ints().min(1))
-            .generate(field(PetResponse::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
-            .toModel();
-
     @Test
     void listPetsReturnsExpected() {
-        PetResponse pet1 = Instancio.create(PET_RESPONSE_MODEL);
-        PetResponse pet2 = Instancio.create(PET_RESPONSE_MODEL);
-        PetResponse pet3 = Instancio.create(PET_RESPONSE_MODEL);
+        PetResponse pet1 = aPetResponse();
+        PetResponse pet2 = aPetResponse();
+        PetResponse pet3 = aPetResponse();
 
         List<PetResponse> pets = List.of(
                 pet1,
@@ -92,7 +85,7 @@ class PetControllerTest {
 
     @Test
     void getPetWithExistingPet_returnsExpected() {
-        PetResponse petResponse = Instancio.create(PET_RESPONSE_MODEL);
+        PetResponse petResponse = aPetResponse();
         when(petService.getPet(anyInt())).thenReturn(Optional.of(petResponse));
 
         assertThat(mockMvc.get().uri("/pets/%d".formatted(petResponse.id())))
@@ -106,26 +99,11 @@ class PetControllerTest {
     @TestFactory
     Stream<DynamicTest> addPetWithInvalidRequest_returnsBadRequestStatus() {
         return Stream.of(
-                Instancio.of(AddPetRequest.class)
-                        .ignore(fields())
-                        .create(),
-                Instancio.of(AddPetRequest.class)
-                        .ignore(field(AddPetRequest::type))
-                        .set(field(AddPetRequest::name), "")
-                        .create(),
-                Instancio.of(AddPetRequest.class)
-                        .ignore(field(AddPetRequest::type))
-                        .set(field(AddPetRequest::name), " ")
-                        .create(),
-                Instancio.of(AddPetRequest.class)
-                        .ignore(field(AddPetRequest::type))
-                        .set(field(AddPetRequest::name), "Goofy")
-                        .create(),
-                Instancio.of(AddPetRequest.class)
-                        .ignore(field(AddPetRequest::name))
-                        .generate(field(AddPetRequest::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
-                        .create(),
-                Instancio.create(AddPetRequest.class)
+                anEmptyAddPetRequest(),
+                anAddPetRequestWithNameAndType("", null),
+                anAddPetRequestWithNameAndType(" ", null),
+                anAddPetRequestWithNameAndType("Goofy", null),
+                anAddPetRequestWithoutName()
         ).map(req -> DynamicTest.dynamicTest(
                 "addPet with invalid request %s returns BadRequest".formatted(req),
                 () -> {
@@ -145,10 +123,8 @@ class PetControllerTest {
 
     @Test
     void addPet_withValidRequest_callsServiceToCreateNewPet() throws Exception {
-        AddPetRequest goofy = Instancio.of(AddPetRequest.class)
-                .generate(field(AddPetRequest::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
-                .create();
-        PetResponse expectedResponse = Instancio.create(PET_RESPONSE_MODEL);
+        AddPetRequest goofy = anAddPetRequest();
+        PetResponse expectedResponse = aPetResponse();
 
         when(petService.addPet(any())).thenReturn(expectedResponse);
 

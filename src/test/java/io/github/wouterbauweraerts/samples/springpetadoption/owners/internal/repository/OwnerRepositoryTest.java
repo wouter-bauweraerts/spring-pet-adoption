@@ -1,9 +1,8 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.repository;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anUnpersistedOwner;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.instancio.Select.field;
 
-import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,7 @@ class OwnerRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        owner = repository.save(Instancio.of(Owner.class).ignore(field(Owner::getId)).create());
+        owner = repository.save(anUnpersistedOwner());
     }
 
     @Test

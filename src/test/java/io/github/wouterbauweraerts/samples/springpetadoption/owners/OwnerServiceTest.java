@@ -1,5 +1,8 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtures.anAddOwnerRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequestFixtures.anUpdateOwnerRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,10 +59,10 @@ class OwnerServiceTest {
 
     @BeforeEach
     void setUp() {
-        owner1 = Instancio.create(Owner.class);
-        owner2 = Instancio.create(Owner.class);
-        owner3 = Instancio.create(Owner.class);
-        owner4 = Instancio.create(Owner.class);
+        owner1 = anOwner();
+        owner2 = anOwner();
+        owner3 = anOwner();
+        owner4 = anOwner();
     }
 
     @Test
@@ -111,7 +113,7 @@ class OwnerServiceTest {
 
     @Test
     void addOwner_returnsExpected() {
-        AddOwnerRequest request = Instancio.create(AddOwnerRequest.class);
+        AddOwnerRequest request = anAddOwnerRequest();
         Owner unpersistedOwner = new Owner(null, request.name());
         Owner persistedOwner = new Owner(13, request.name());
         OwnerResponse expected = new OwnerResponse(persistedOwner.getId(), persistedOwner.getName(), Map.of());
@@ -125,7 +127,7 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_notFound() {
-        UpdateOwnerRequest request = Instancio.create(UpdateOwnerRequest.class);
+        UpdateOwnerRequest request = anUpdateOwnerRequest();
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -136,8 +138,8 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_updatesExistingAndSaves() {
-        Owner original = Instancio.create(Owner.class);
-        UpdateOwnerRequest request = Instancio.create(UpdateOwnerRequest.class);
+        Owner original = anOwner();
+        UpdateOwnerRequest request = anUpdateOwnerRequest();
         Owner updatedOwner = new Owner(original.getId(), request.name());
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.of(original));

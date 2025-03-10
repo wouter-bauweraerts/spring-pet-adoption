@@ -1,11 +1,15 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.event.PetAdoptedEventFixtures.aPetAdoptedEvent;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEventFixtures.anOwnerDeletedEvent;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPetWithTypeAndOwnerId;
+import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anAdoptablePet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.instancio.Select.allInts;
-import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -18,8 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.instancio.Instancio;
-import org.instancio.Model;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,24 +53,13 @@ class PetServiceTest {
     @Spy
     PetMapper petMapper = Mappers.getMapper(PetMapper.class);
 
-    private static final Model<Pet> PET_MODEL = Instancio.of(Pet.class)
-            .generate(allInts(), gen -> gen.ints().min(1))
-            .generate(field(Pet::getType), gen -> gen.enumOf(PetType.class))
-            .toModel();
-
-    private static final Model<Pet> ADOPTABLE_PET_MODEL = Instancio.of(PET_MODEL).ignore(field(Pet::getOwnerId)).toModel();
-
-    private static final Model<AddPetRequest> ADD_PET_REQUEST_MODEL = Instancio.of(AddPetRequest.class)
-            .generate(field(AddPetRequest::type), gen -> gen.enumOf(PetType.class).as(Enum::name))
-            .toModel();
-
     @Test
     void getPets_executesPaginatesQueryAndReturnsExpected() {
         Pageable pageRequest = mock(Pageable.class);
         List<Pet> petEntities = List.of(
-                Instancio.create(PET_MODEL),
-                Instancio.create(ADOPTABLE_PET_MODEL),
-                Instancio.create(ADOPTABLE_PET_MODEL)
+                aPet(),
+                anAdoptablePet(),
+                anAdoptablePet()
         );
 
         List<PetResponse> petDtos = petEntities.stream()
@@ -82,7 +73,7 @@ class PetServiceTest {
 
     @Test
     void getPet_findsPetByIdAndReturnsExpected() {
-        Pet petEntity = Instancio.create(PET_MODEL);
+        Pet petEntity = aPet();
         PetResponse petDto = new PetResponse(petEntity.getId(), petEntity.getName(), petEntity.getType().name());
 
         when(petRepository.findById(anyInt())).thenReturn(java.util.Optional.of(petEntity));
@@ -102,8 +93,8 @@ class PetServiceTest {
     @Test
     void getPetsAvailableForAdoption_returnsExpected() {
         List<Pet> petEntities = List.of(
-                Instancio.create(ADOPTABLE_PET_MODEL),
-                Instancio.create(ADOPTABLE_PET_MODEL)
+                anAdoptablePet(),
+                anAdoptablePet()
         );
 
         List<PetResponse> petDtos = petEntities.stream()
@@ -118,9 +109,9 @@ class PetServiceTest {
 
     @Test
     void addPetCreatedNewPetAndPersist() {
-        AddPetRequest addPetRequest = Instancio.create(ADD_PET_REQUEST_MODEL);
+        AddPetRequest addPetRequest = anAddPetRequest();
         Pet newPet = new Pet(null, addPetRequest.name(), PetType.valueOf(addPetRequest.type()), null);
-        Pet persistedPet = Instancio.create(PET_MODEL);
+        Pet persistedPet = aPet();
         PetResponse expectedResponse = new PetResponse(
                 persistedPet.getId(),
                 persistedPet.getName(),
@@ -143,18 +134,9 @@ class PetServiceTest {
 
     @Test
     void getPetsForOwner_returnsExpectedMap() {
-        Pet pet1 = Instancio.of(PET_MODEL)
-                .set(field(Pet::getType), DOG)
-                .set(field(Pet::getOwnerId), 1)
-                .create();
-        Pet pet2 = Instancio.of(PET_MODEL)
-                .set(field(Pet::getType), DOG)
-                .set(field(Pet::getOwnerId), 1)
-                .create();
-        Pet pet3 = Instancio.of(PET_MODEL)
-                .set(field(Pet::getType), CAT)
-                .set(field(Pet::getOwnerId), 1)
-                .create();
+        Pet pet1 = aPetWithTypeAndOwnerId(DOG, 1);
+        Pet pet2 = aPetWithTypeAndOwnerId(DOG, 1);
+        Pet pet3 = aPetWithTypeAndOwnerId(CAT, 1);
 
         List<Pet> pets = List.of(pet1, pet2, pet3);
         when(petRepository.findAllByOwnerId(anyInt())).thenReturn(pets);
@@ -169,7 +151,7 @@ class PetServiceTest {
 
     @Test
     void onOwnerDeletedAllPetsOfOwnerAreDeleted() {
-        OwnerDeletedEvent ownerDeletedEvent = Instancio.create(OwnerDeletedEvent.class);
+        OwnerDeletedEvent ownerDeletedEvent = anOwnerDeletedEvent();
 
         petService.onOwnerDeleted(ownerDeletedEvent);
 
@@ -187,13 +169,13 @@ class PetServiceTest {
     private static Stream<Arguments> noAdoptablePetSource() {
         return Stream.of(
                 Arguments.of(Optional.empty()),
-                Arguments.of(Optional.of(Instancio.create(PET_MODEL)))
+                Arguments.of(Optional.of(aPet()))
         );
     }
 
     @Test
     void getPetForAdoption_returnsExpected() {
-        Pet petEntity = Instancio.create(ADOPTABLE_PET_MODEL);
+        Pet petEntity = anAdoptablePet();
         PetResponse petDto = new PetResponse(
                 petEntity.getId(),
                 petEntity.getName(),
@@ -207,7 +189,7 @@ class PetServiceTest {
 
     @Test
     void onPetAdoptedEvent_whenPetNotFound_throwsExpected() {
-        PetAdoptedEvent event = Instancio.create(PetAdoptedEvent.class);
+        PetAdoptedEvent event = aPetAdoptedEvent();
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -218,10 +200,8 @@ class PetServiceTest {
 
     @Test
     void onPetAdoptedEvent_setsTheOwnerFromAPet() {
-        PetAdoptedEvent event = Instancio.create(PetAdoptedEvent.class);
-        Pet unadoptedPet = Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getOwnerId))
-                .create();
+        PetAdoptedEvent event = aPetAdoptedEvent();
+        Pet unadoptedPet = anAdoptablePet();
         Pet adoptedPet = new Pet(unadoptedPet.getId(), unadoptedPet.getName(), unadoptedPet.getType(), event.ownerId());
 
         when(petRepository.findById(anyInt())).thenReturn(Optional.of(unadoptedPet));

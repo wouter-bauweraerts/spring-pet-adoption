@@ -1,20 +1,19 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.internal;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwner;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwnerWIithName;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.instancio.Select.field;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.mapstruct.factory.Mappers;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
-import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.Owner;
 
 class OwnerMapperTest {
 
@@ -24,8 +23,8 @@ class OwnerMapperTest {
     Stream<DynamicTest> map() {
         return Stream.of(
                 null,
-                Instancio.create(Owner.class),
-                Instancio.of(Owner.class).ignore(field(Owner::getName)).create()
+                anOwner(),
+                anOwnerWIithName(null)
         ).map(owner -> dynamicTest(
                 "%s maps to expected".formatted(owner),
                 () -> {
@@ -34,4 +33,6 @@ class OwnerMapperTest {
                 }
         ));
     }
+
+
 }

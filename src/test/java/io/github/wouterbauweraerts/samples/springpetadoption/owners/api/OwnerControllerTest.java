@@ -1,7 +1,10 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.api;
 
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtures.anAddOwnerRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequestFixtures.anUpdateOwnerRequest;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponseFixtures.aListOfOwnerResponses;
+import static io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponseFixtures.anOwnerResponse;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.instancio.Select.field;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -14,12 +17,9 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.instancio.Instancio;
-import org.instancio.Model;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtures;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 
@@ -48,20 +49,9 @@ class OwnerControllerTest {
     @MockitoBean
     OwnerService ownerService;
 
-    private static final Model<OwnerResponse> OWNER_RESPONSE_MODEL = Instancio.of(OwnerResponse.class)
-            .generate(field(OwnerResponse::getId), gen -> gen.ints().min(1))
-            .supply(field(OwnerResponse::getPets), Map::of)
-            .toModel();
-
     @Test
     void listOwners() {
-        List<OwnerResponse> owners = List.of(
-                Instancio.create(OWNER_RESPONSE_MODEL),
-                Instancio.create(OWNER_RESPONSE_MODEL),
-                Instancio.create(OWNER_RESPONSE_MODEL),
-                Instancio.create(OWNER_RESPONSE_MODEL),
-                Instancio.create(OWNER_RESPONSE_MODEL)
-        );
+        List<OwnerResponse> owners = aListOfOwnerResponses();
 
         when(ownerService.getOwners(any(Pageable.class))).thenReturn(
                 new PageImpl<>(owners)
@@ -75,7 +65,7 @@ class OwnerControllerTest {
 
     @Test
     void getOwnerWithExistingOwner_returnsExpected() throws Exception {
-        OwnerResponse ownerResponse = Instancio.create(OWNER_RESPONSE_MODEL);
+        OwnerResponse ownerResponse = anOwnerResponse();
         when(ownerService.getOwnerById(anyInt())).thenReturn(Optional.of(ownerResponse));
 
         assertThat(mockMvc.get().uri("/owners/%d".formatted(ownerResponse.getId())))
@@ -100,7 +90,7 @@ class OwnerControllerTest {
                         " ",
                         "\t",
                         "\n"
-                ).map(AddOwnerRequest::new)
+                ).map(AddOwnerRequestFixtures::anAddOwnerRequest)
                 .map(request -> dynamicTest(
                         "Add owner with name %s should return HTTP400".formatted(request.name()),
                         () -> assertThat(
@@ -113,8 +103,8 @@ class OwnerControllerTest {
 
     @Test
     void addOwner_returnsExpected() throws Exception {
-        AddOwnerRequest addOwner = Instancio.create(AddOwnerRequest.class);
-        OwnerResponse createdOwner = Instancio.create(OWNER_RESPONSE_MODEL);
+        AddOwnerRequest addOwner = anAddOwnerRequest();
+        OwnerResponse createdOwner = anOwnerResponse();
 
         when(ownerService.addOwner(any(AddOwnerRequest.class))).thenReturn(createdOwner);
 
@@ -129,7 +119,7 @@ class OwnerControllerTest {
 
     @Test
     void updateOwner_callsService() throws Exception {
-        UpdateOwnerRequest updateOwner = Instancio.create(UpdateOwnerRequest.class);
+        UpdateOwnerRequest updateOwner = anUpdateOwnerRequest();
         assertThat(
                 mockMvc.put().uri("/owners/13")
                         .contentType(APPLICATION_JSON)
