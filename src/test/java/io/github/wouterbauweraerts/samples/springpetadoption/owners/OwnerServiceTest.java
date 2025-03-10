@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,11 +36,9 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.dom
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.repository.OwnerRepository;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import jakarta.persistence.EntityNotFoundException;
-import net.datafaker.Faker;
 
 @ExtendWith(MockitoExtension.class)
 class OwnerServiceTest {
-    private static Faker FAKER = new Faker();
 
     @InjectMocks
     OwnerService ownerService;
@@ -58,22 +57,10 @@ class OwnerServiceTest {
 
     @BeforeEach
     void setUp() {
-        owner1 = new Owner(
-                FAKER.number().positive(),
-                FAKER.name().fullName()
-        );
-        owner2 = new Owner(
-                FAKER.number().positive(),
-                FAKER.name().fullName()
-        );
-        owner3 = new Owner(
-                FAKER.number().positive(),
-                FAKER.name().fullName()
-        );
-        owner4 = new Owner(
-                FAKER.number().positive(),
-                FAKER.name().fullName()
-        );
+        owner1 = Instancio.create(Owner.class);
+        owner2 = Instancio.create(Owner.class);
+        owner3 = Instancio.create(Owner.class);
+        owner4 = Instancio.create(Owner.class);
     }
 
     @Test
@@ -124,7 +111,7 @@ class OwnerServiceTest {
 
     @Test
     void addOwner_returnsExpected() {
-        AddOwnerRequest request = new AddOwnerRequest(FAKER.name().fullName());
+        AddOwnerRequest request = Instancio.create(AddOwnerRequest.class);
         Owner unpersistedOwner = new Owner(null, request.name());
         Owner persistedOwner = new Owner(13, request.name());
         OwnerResponse expected = new OwnerResponse(persistedOwner.getId(), persistedOwner.getName(), Map.of());
@@ -138,7 +125,7 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_notFound() {
-        UpdateOwnerRequest request = new UpdateOwnerRequest(FAKER.name().fullName());
+        UpdateOwnerRequest request = Instancio.create(UpdateOwnerRequest.class);
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -149,16 +136,13 @@ class OwnerServiceTest {
 
     @Test
     void updateOwner_updatesExistingAndSaves() {
-        Owner original = new Owner(
-                FAKER.number().positive(),
-                FAKER.name().fullName()
-        );
-        UpdateOwnerRequest request = new UpdateOwnerRequest(FAKER.name().fullName());
+        Owner original = Instancio.create(Owner.class);
+        UpdateOwnerRequest request = Instancio.create(UpdateOwnerRequest.class);
         Owner updatedOwner = new Owner(original.getId(), request.name());
 
         when(ownerRepository.findById(anyInt())).thenReturn(Optional.of(original));
 
-        ownerService.updateOwner(13, request);
+        ownerService.updateOwner(original.getId(), request);
 
         assertThat(original.getName()).isEqualTo(request.name());
         verify(ownerRepository).save(updatedOwner);

@@ -1,6 +1,7 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -17,6 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.instancio.Instancio;
+import org.instancio.Model;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -33,12 +36,9 @@ import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
-import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
-import net.datafaker.Faker;
 
 @WebMvcTest(OwnerController.class)
 class OwnerControllerTest {
-    private static Faker FAKER = new Faker();
 
     @Autowired
     MockMvcTester mockMvc;
@@ -48,49 +48,19 @@ class OwnerControllerTest {
     @MockitoBean
     OwnerService ownerService;
 
+    private static final Model<OwnerResponse> OWNER_RESPONSE_MODEL = Instancio.of(OwnerResponse.class)
+            .generate(field(OwnerResponse::getId), gen -> gen.ints().min(1))
+            .supply(field(OwnerResponse::getPets), Map::of)
+            .toModel();
+
     @Test
     void listOwners() {
         List<OwnerResponse> owners = List.of(
-                new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        ),
-                new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        ),
-                new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        ),
-                new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        ),
-                new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        )
+                Instancio.create(OWNER_RESPONSE_MODEL),
+                Instancio.create(OWNER_RESPONSE_MODEL),
+                Instancio.create(OWNER_RESPONSE_MODEL),
+                Instancio.create(OWNER_RESPONSE_MODEL),
+                Instancio.create(OWNER_RESPONSE_MODEL)
         );
 
         when(ownerService.getOwners(any(Pageable.class))).thenReturn(
@@ -105,14 +75,7 @@ class OwnerControllerTest {
 
     @Test
     void getOwnerWithExistingOwner_returnsExpected() throws Exception {
-        OwnerResponse ownerResponse = new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        );
+        OwnerResponse ownerResponse = Instancio.create(OWNER_RESPONSE_MODEL);
         when(ownerService.getOwnerById(anyInt())).thenReturn(Optional.of(ownerResponse));
 
         assertThat(mockMvc.get().uri("/owners/%d".formatted(ownerResponse.getId())))
@@ -150,15 +113,8 @@ class OwnerControllerTest {
 
     @Test
     void addOwner_returnsExpected() throws Exception {
-        AddOwnerRequest addOwner = new AddOwnerRequest(FAKER.name().fullName());
-        OwnerResponse createdOwner = new OwnerResponse(
-                FAKER.number().positive(),
-                FAKER.name().fullName(),
-                Map.of(
-                        FAKER.options().option(PetType.class).name(),
-                        List.of(FAKER.animal().name())
-                )
-        );
+        AddOwnerRequest addOwner = Instancio.create(AddOwnerRequest.class);
+        OwnerResponse createdOwner = Instancio.create(OWNER_RESPONSE_MODEL);
 
         when(ownerService.addOwner(any(AddOwnerRequest.class))).thenReturn(createdOwner);
 
@@ -172,8 +128,8 @@ class OwnerControllerTest {
     }
 
     @Test
-    void updateOwner_callsService() throws Exception{
-        UpdateOwnerRequest updateOwner = new UpdateOwnerRequest(FAKER.name().fullName());
+    void updateOwner_callsService() throws Exception {
+        UpdateOwnerRequest updateOwner = Instancio.create(UpdateOwnerRequest.class);
         assertThat(
                 mockMvc.put().uri("/owners/13")
                         .contentType(APPLICATION_JSON)
