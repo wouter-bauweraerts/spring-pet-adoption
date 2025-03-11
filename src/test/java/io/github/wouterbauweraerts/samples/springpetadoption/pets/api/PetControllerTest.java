@@ -1,8 +1,6 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.pets.api;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequest;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequestWithNameAndType;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequestWithoutName;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anEmptyAddPetRequest;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponseFixtures.aPetResponse;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequest;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtureBuilder;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 
 @WebMvcTest(PetController.class)
@@ -100,10 +99,10 @@ class PetControllerTest {
     Stream<DynamicTest> addPetWithInvalidRequest_returnsBadRequestStatus() {
         return Stream.of(
                 anEmptyAddPetRequest(),
-                anAddPetRequestWithNameAndType("", null),
-                anAddPetRequestWithNameAndType(" ", null),
-                anAddPetRequestWithNameAndType("Goofy", null),
-                anAddPetRequestWithoutName()
+                AddPetRequestFixtureBuilder.fixtureBuilder().withName("").ignoreType().build(),
+                AddPetRequestFixtureBuilder.fixtureBuilder().withName(" ").ignoreType().build(),
+                AddPetRequestFixtureBuilder.fixtureBuilder().withName("Goofy").ignoreType().build(),
+                AddPetRequestFixtureBuilder.fixtureBuilder().ignoreName().build()
         ).map(req -> DynamicTest.dynamicTest(
                 "addPet with invalid request %s returns BadRequest".formatted(req),
                 () -> {

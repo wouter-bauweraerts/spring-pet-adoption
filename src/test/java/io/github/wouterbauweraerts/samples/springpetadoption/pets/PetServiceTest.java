@@ -4,7 +4,6 @@ import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.ap
 import static io.github.wouterbauweraerts.samples.springpetadoption.owners.events.OwnerDeletedEventFixtures.anOwnerDeletedEvent;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequest;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPetWithTypeAndOwnerId;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anAdoptablePet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.CAT;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType.DOG;
@@ -41,6 +40,7 @@ import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.Ad
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.PetMapper;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtureBuilder;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetRepository;
 
@@ -134,9 +134,9 @@ class PetServiceTest {
 
     @Test
     void getPetsForOwner_returnsExpectedMap() {
-        Pet pet1 = aPetWithTypeAndOwnerId(DOG, 1);
-        Pet pet2 = aPetWithTypeAndOwnerId(DOG, 1);
-        Pet pet3 = aPetWithTypeAndOwnerId(CAT, 1);
+        Pet pet1 = PetFixtureBuilder.fixtureBuilder().withType(DOG).withOwnerId(1).build();
+        Pet pet2 = PetFixtureBuilder.fixtureBuilder().withType(DOG).withOwnerId(1).build();
+        Pet pet3 = PetFixtureBuilder.fixtureBuilder().withType(CAT).withOwnerId(1).build();
 
         List<Pet> pets = List.of(pet1, pet2, pet3);
         when(petRepository.findAllByOwnerId(anyInt())).thenReturn(pets);

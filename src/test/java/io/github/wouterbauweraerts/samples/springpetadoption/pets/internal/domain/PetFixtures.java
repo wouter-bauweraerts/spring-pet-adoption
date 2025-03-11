@@ -6,59 +6,37 @@ import static org.instancio.Select.field;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
+import io.github.wouterbauweraerts.instancio.fixture.builder.GenerateFixtureBuilder;
+import io.github.wouterbauweraerts.instancio.fixture.builder.InstancioModel;
+
+@GenerateFixtureBuilder(builderForType = Pet.class, fixtureClass = PetFixtures.class)
 public class PetFixtures {
+    @InstancioModel
     public static final Model<Pet> PET_MODEL = Instancio.of(Pet.class)
             .generate(allInts(), gen -> gen.ints().min(1))
             .generate(field(Pet::getType), gen -> gen.enumOf(PetType.class))
             .toModel();
 
     public static Pet aPet() {
-        return Instancio.create(PET_MODEL);
+        return PetFixtureBuilder.fixtureBuilder().build();
     }
 
     public static Pet anAdoptablePet() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getOwnerId))
-                .create();
+        return PetFixtureBuilder.fixtureBuilder().ignoreOwnerId().build();
     }
 
     public static Pet anUnpersistedPet() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getId))
-                .create();
+        return PetFixtureBuilder.fixtureBuilder().ignoreId().build();
     }
 
     public static Pet anUnpersistedAdoptablePet() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getId))
-                .ignore(field(Pet::getOwnerId))
-                .create();
+        return PetFixtureBuilder.fixtureBuilder().ignoreId().ignoreOwnerId().build();
     }
 
     public static Pet anUnpersistedPetWithOwnerId(Integer ownerId) {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getId))
-                .set(field(Pet::getOwnerId), ownerId)
-                .create();
-    }
-
-    public static Pet aPetWithoutNameAndOwnerId() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getName))
-                .ignore(field(Pet::getOwnerId))
-                .create();
-    }
-
-    public static Pet aPetWithoutType() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getType))
-                .create();
-    }
-
-    public static Pet aPetWithTypeAndOwnerId(PetType type, Integer ownerId) {
-        return Instancio.of(PET_MODEL)
-                .set(field(Pet::getType), type)
-                .set(field(Pet::getOwnerId), ownerId)
-                .create();
+        return PetFixtureBuilder.fixtureBuilder()
+                .ignoreId()
+                .withOwnerId(ownerId)
+                .build();
     }
 }
