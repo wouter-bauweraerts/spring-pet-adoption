@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.OwnerService;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequest;
-import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtures;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.AddOwnerRequestFixtureBuilder;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.request.UpdateOwnerRequest;
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
 
@@ -90,7 +90,7 @@ class OwnerControllerTest {
                         " ",
                         "\t",
                         "\n"
-                ).map(AddOwnerRequestFixtures::anAddOwnerRequest)
+                ).map(name -> AddOwnerRequestFixtureBuilder.fixtureBuilder().withName(name).build())
                 .map(request -> dynamicTest(
                         "Add owner with name %s should return HTTP400".formatted(request.name()),
                         () -> assertThat(
