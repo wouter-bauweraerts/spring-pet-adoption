@@ -6,59 +6,75 @@ import static org.instancio.Select.field;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
+import io.github.wouterbauweraerts.samples.springpetadoption.util.AbstractFixtureBuilder;
+
 public class PetFixtures {
     public static final Model<Pet> PET_MODEL = Instancio.of(Pet.class)
             .generate(allInts(), gen -> gen.ints().min(1))
             .generate(field(Pet::getType), gen -> gen.enumOf(PetType.class))
             .toModel();
 
+    public static PetFixtureBuilder fixtureBuilder() {
+        return new PetFixtureBuilder();
+    }
+
     public static Pet aPet() {
         return Instancio.create(PET_MODEL);
     }
 
     public static Pet anAdoptablePet() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getOwnerId))
-                .create();
+        return fixtureBuilder().ignoreOwnerId().build();
     }
 
     public static Pet anUnpersistedPet() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getId))
-                .create();
+        return fixtureBuilder().ignoreId().build();
     }
 
     public static Pet anUnpersistedAdoptablePet() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getId))
-                .ignore(field(Pet::getOwnerId))
-                .create();
+        return fixtureBuilder().ignoreId().ignoreOwnerId().build();
     }
 
-    public static Pet anUnpersistedPetWithOwnerId(Integer ownerId) {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getId))
-                .set(field(Pet::getOwnerId), ownerId)
-                .create();
-    }
+    public static class PetFixtureBuilder extends AbstractFixtureBuilder<Pet, PetFixtureBuilder> {
+        @Override
+        public Pet build() {
+            return buildInternal(PET_MODEL);
+        }
 
-    public static Pet aPetWithoutNameAndOwnerId() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getName))
-                .ignore(field(Pet::getOwnerId))
-                .create();
-    }
+        @Override
+        public PetFixtureBuilder self() {
+            return this;
+        }
 
-    public static Pet aPetWithoutType() {
-        return Instancio.of(PET_MODEL)
-                .ignore(field(Pet::getType))
-                .create();
-    }
+        public PetFixtureBuilder withId(Integer id) {
+            return this.setField(Pet::getId, id);
+        }
 
-    public static Pet aPetWithTypeAndOwnerId(PetType type, Integer ownerId) {
-        return Instancio.of(PET_MODEL)
-                .set(field(Pet::getType), type)
-                .set(field(Pet::getOwnerId), ownerId)
-                .create();
+        public PetFixtureBuilder withName(String name) {
+            return this.setField(Pet::getName, name);
+        }
+
+        public PetFixtureBuilder withType(PetType type) {
+            return this.setField(Pet::getType, type);
+        }
+
+        public PetFixtureBuilder withOwnerId(Integer ownerId) {
+            return this.setField(Pet::getOwnerId, ownerId);
+        }
+
+        public PetFixtureBuilder ignoreId() {
+            return this.withId(null);
+        }
+
+        public PetFixtureBuilder ignoreName() {
+            return this.withName(null);
+        }
+
+        public PetFixtureBuilder ignoreType() {
+            return this.withType(null);
+        }
+
+        public PetFixtureBuilder ignoreOwnerId() {
+            return this.withOwnerId(null);
+        }
     }
 }

@@ -2,7 +2,6 @@ package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repo
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anUnpersistedAdoptablePet;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anUnpersistedPet;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.anUnpersistedPetWithOwnerId;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.repository.PetSpecification.adoptablePetSearchSpecification;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures;
 
 @DataJpaTest
 class PetRepositoryTest {
@@ -63,10 +63,10 @@ class PetRepositoryTest {
         petRepository.save(anUnpersistedPet());
         petRepository.save(anUnpersistedPet());
         petRepository.save(anUnpersistedPet());
-        Pet pet1 = petRepository.save(anUnpersistedPetWithOwnerId(13));
-        Pet pet2 = petRepository.save(anUnpersistedPetWithOwnerId(13));
-        Pet pet3 = petRepository.save(anUnpersistedPetWithOwnerId(13));
-        Pet pet4 = petRepository.save(anUnpersistedPetWithOwnerId(13));
+        Pet pet1 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
+        Pet pet2 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
+        Pet pet3 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
+        Pet pet4 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
 
         assertThat(petRepository.findAllByOwnerId(13)).containsExactlyInAnyOrder(
                 pet1, pet2, pet3, pet4
@@ -79,10 +79,10 @@ class PetRepositoryTest {
         petRepository.save(anUnpersistedPet());
         petRepository.save(anUnpersistedPet());
         petRepository.save(anUnpersistedPet());
-        Pet pet1 = petRepository.save(anUnpersistedPetWithOwnerId(13));
-        Pet pet2 = petRepository.save(anUnpersistedPetWithOwnerId(13));
-        Pet pet3 = petRepository.save(anUnpersistedPetWithOwnerId(13));
-        Pet pet4 = petRepository.save(anUnpersistedPetWithOwnerId(13));
+        Pet pet1 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
+        Pet pet2 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
+        Pet pet3 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
+        Pet pet4 = petRepository.save(PetFixtures.fixtureBuilder().ignoreId().withOwnerId(13).build());
 
         assertThat(petRepository.findAll()).contains(pet1, pet2, pet3, pet4);
 

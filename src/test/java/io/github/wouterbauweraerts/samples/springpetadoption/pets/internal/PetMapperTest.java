@@ -3,8 +3,6 @@ package io.github.wouterbauweraerts.samples.springpetadoption.pets.internal;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anAddPetRequest;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.api.request.AddPetRequestFixtures.anEmptyAddPetRequest;
 import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPet;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPetWithoutNameAndOwnerId;
-import static io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures.aPetWithoutType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -20,6 +18,7 @@ import org.springframework.data.util.Pair;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.api.response.PetResponse;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.Pet;
+import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetFixtures;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.internal.domain.PetType;
 
 class PetMapperTest {
@@ -34,8 +33,8 @@ class PetMapperTest {
     Stream<DynamicTest> mapFromPetToPetResponse_returnsExpected() {
         return Stream.of(
                         aPet(),
-                        aPetWithoutNameAndOwnerId(),
-                        aPetWithoutType()
+                        PetFixtures.fixtureBuilder().ignoreName().ignoreOwnerId().build(),
+                        PetFixtures.fixtureBuilder().ignoreType().build()
                 ).map(pet -> Pair.of(
                         pet,
                         new PetResponse(
