@@ -1,10 +1,6 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anAdoptPetCommand;
-import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anAdoptPetCommandWithOwnerId;
-import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anAdoptPetCommandWithPetId;
-import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anAdoptPetCommandWithPetIdAndOwnerId;
-import static io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtures.anEmptyAdoptPetCommand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +33,7 @@ import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.AdoptionS
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.exceptions.OwnerNotFoundException;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.exceptions.PetNotFoundException;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommand;
+import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptPetCommandFixtureBuilder;
 import io.github.wouterbauweraerts.samples.springpetadoption.adoptions.api.request.AdoptablePetSearch;
 import io.github.wouterbauweraerts.samples.springpetadoption.pets.PetService;
 
@@ -110,12 +107,12 @@ class AdoptionControllerTest {
     @TestFactory
     Stream<DynamicTest> adoptWithInvalidCommand_badRequest() {
         return Stream.of(
-                anEmptyAdoptPetCommand(),
-                anAdoptPetCommandWithPetId(null),
-                anAdoptPetCommandWithPetId(-1),
-                anAdoptPetCommandWithOwnerId(null),
-                anAdoptPetCommandWithOwnerId(-1),
-                anAdoptPetCommandWithPetIdAndOwnerId(-1, -1)
+                AdoptPetCommandFixtureBuilder.fixtureBuilder().ignorePetId().ignoreOwnerId().build(),
+                AdoptPetCommandFixtureBuilder.fixtureBuilder().ignorePetId().build(),
+                AdoptPetCommandFixtureBuilder.fixtureBuilder().withPetId(-1).build(),
+                AdoptPetCommandFixtureBuilder.fixtureBuilder().ignoreOwnerId().build(),
+                AdoptPetCommandFixtureBuilder.fixtureBuilder().withOwnerId(-1).build(),
+                AdoptPetCommandFixtureBuilder.fixtureBuilder().withPetId(-1).withOwnerId(-1).build()
         ).map(req -> dynamicTest(
                 "POST to /adoptions with request %s returns HTTP400".formatted(req),
                 () -> {
