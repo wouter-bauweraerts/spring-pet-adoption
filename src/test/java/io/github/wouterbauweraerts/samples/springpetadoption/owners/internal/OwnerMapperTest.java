@@ -1,7 +1,6 @@
 package io.github.wouterbauweraerts.samples.springpetadoption.owners.internal;
 
 import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwner;
-import static io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures.anOwnerWIithName;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.mapstruct.factory.Mappers;
 
 import io.github.wouterbauweraerts.samples.springpetadoption.owners.api.response.OwnerResponse;
+import io.github.wouterbauweraerts.samples.springpetadoption.owners.internal.domain.OwnerFixtures;
 
 class OwnerMapperTest {
 
@@ -24,7 +24,7 @@ class OwnerMapperTest {
         return Stream.of(
                 null,
                 anOwner(),
-                anOwnerWIithName(null)
+                OwnerFixtures.fixtureBuilder().withName(null).build()
         ).map(owner -> dynamicTest(
                 "%s maps to expected".formatted(owner),
                 () -> {
