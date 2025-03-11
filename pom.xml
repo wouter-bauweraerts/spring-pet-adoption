@@ -118,6 +118,12 @@
             <version>${instancio.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.wouter-bauweraerts</groupId>
+            <artifactId>instancio-fixture-builder</artifactId>
+            <version>${instancio.version}</version>
+            <scope>test</scope>
+        </dependency>
 
 
         <dependency>
@@ -143,6 +149,11 @@
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.github.wouter-bauweraerts</groupId>
+                            <artifactId>instancio-fixture-builder</artifactId>
+                            <version>${instancio.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
