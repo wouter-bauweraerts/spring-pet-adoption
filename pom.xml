@@ -116,6 +116,7 @@
             <groupId>org.instancio</groupId>
             <artifactId>instancio-junit</artifactId>
             <version>${instancio.version}</version>
+            <scope>test</scope>
         </dependency>
 
 
