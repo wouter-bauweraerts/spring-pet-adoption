@@ -17,6 +17,7 @@ Built using Spring-Boot and Spring Modulith. Application divided into 4 modules
 - instancio
 - instancio-fixtures
 - instancio-fixture-builder
+- abstract-fixture-builder
 
 ### main
 - Starting point of the demonstration
